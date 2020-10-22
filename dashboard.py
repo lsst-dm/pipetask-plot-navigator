@@ -105,7 +105,8 @@ gspec[3, 0] = category_select
 gspec[4, 0] = number_select
 gspec[5, 0] = compare_toggle
 gspec[6:16, 0] = plot_names
-gspec[0, 1] = debug_text
+# gspec[0, 1] = debug_text
+gspec[0, 1] = pn.Spacer()
 gspec[1:, 1] = plots
 
 gspec.servable()
