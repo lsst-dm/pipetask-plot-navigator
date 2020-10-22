@@ -97,8 +97,8 @@ def update_plots(event):
     if isinstance(event.new, list):
         # plots.objects = [pn.pane.HTML(f"{full_plot_paths[v]}") for v in event.new]
         plots.objects = [pn.pane.PNG(full_plot_paths[v], width=600) for v in event.new]
-    else:
-        pass
+    elif isinstance(event.new, int):
+        plots.objects = [pn.pane.PNG(full_plot_paths[v], width=600) for v in plot_names.options]
         # plots.objects = [pn.pane.HTML(f"{event.new}: {v}") for v in options.value]
 
 
@@ -116,7 +116,7 @@ gspec[4, 0] = category_select
 gspec[5, 0] = number_select
 gspec[6, 0] = compare_toggle
 gspec[7:16, 0] = plot_names
-# gspec[0, 1] = debug_text
+gspec[16, 0] = debug_text
 # gspec[0, 1] = pn.Spacer()
 gspec[1:, 1] = plots
 
