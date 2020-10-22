@@ -89,7 +89,7 @@ def update_plots(event):
     debug_text.value = event.new
     if isinstance(event.new, list):
         # plots.objects = [pn.pane.HTML(f"{full_plot_paths[v]}") for v in event.new]
-        plots.objects = [pn.pane.PNG(full_plot_paths[v], width=400) for v in event.new]
+        plots.objects = [pn.pane.PNG(full_plot_paths[v], width=600) for v in event.new]
     else:
         pass
         # plots.objects = [pn.pane.HTML(f"{event.new}: {v}") for v in options.value]
@@ -106,6 +106,6 @@ gspec[4, 0] = number_select
 gspec[5, 0] = compare_toggle
 gspec[6:16, 0] = plot_names
 gspec[0, 1] = debug_text
-gspec[1:, 1:] = plots
+gspec[1:, 1:4] = plots
 
 gspec.servable()
