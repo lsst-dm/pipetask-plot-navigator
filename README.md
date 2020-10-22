@@ -22,4 +22,4 @@ Interaction should be straightforward.  You can multi-select the "Plots" box.  M
 
 If any of the plots are miscategorized, let me know.
 
-![](screenshot.png)
+![](screencast.gif)
