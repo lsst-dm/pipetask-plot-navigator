@@ -39,7 +39,7 @@ plot_names = pn.widgets.MultiSelect(
     ),
 )
 
-plots = pn.GridBox(['placeholder'], ncols=3)
+plots = pn.GridBox(['placeholder'], ncols=2)
 
 
 def update_df(event):
