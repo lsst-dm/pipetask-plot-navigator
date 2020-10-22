@@ -98,6 +98,7 @@ def update_plots(event):
         # plots.objects = [pn.pane.HTML(f"{full_plot_paths[v]}") for v in event.new]
         plots.objects = [pn.pane.PNG(full_plot_paths[v], width=600) for v in event.new]
     elif isinstance(event.new, int) or isinstance(event.new, str):
+        update_plot_names()
         plots.objects = [pn.pane.PNG(full_plot_paths[v], width=600) for v in plot_names.value]
         # plots.objects = [pn.pane.HTML(f"{event.new}: {v}") for v in options.value]
 
