@@ -22,8 +22,14 @@ def get_plots_list(df, filt, datastyle, number, category, compare=False, full_na
     q = f'filt == "{filt}" and datastyle == "{datastyle}" and number == {number} and category == "{category}" and compare == {compare}'
     
     if full_name:
-        plots = list(df.query(q).basename)
+        plots = df.query(q).basename
     else:
-        plots = list(df.query(q).content)
-    plots.sort()
-    return plots
+        plots = df.query(q).content
+
+    paths = df.query(q).filename
+
+    inds = np.argsort(plots)
+    plots = list(plots[inds])
+    paths = list(paths[inds])
+
+    return plots, paths

@@ -59,10 +59,13 @@ def update_categories(event):
 datastyle_select.param.watch(update_categories, "value")
 
 
+full_plot_paths = {}
 def update_plot_names(event):
+    global full_plot_paths
+
     debug_text.value = len(df)
 
-    plot_names.options = get_plots_list(
+    plot_names.options, paths = get_plots_list(
         df,
         filter_select.value,
         datastyle_select.value,
@@ -70,6 +73,8 @@ def update_plot_names(event):
         category_select.value,
         compare_toggle.value,
     )
+
+    full_plot_paths = {k: v for k, v in zip(plot_names.options, paths)}
 
 
 filter_select.param.watch(update_plot_names, "value")
@@ -83,7 +88,7 @@ repo_input.param.watch(update_plot_names, 'value')
 def update_plots(event):
     debug_text.value = event.new
     if isinstance(event.new, list):
-        plots.objects = [pn.pane.HTML(f"{v}") for v in event.new]
+        plots.objects = [pn.pane.HTML(f"{full_plot_paths[v]}") for v in event.new]
     else:
         pass
         # plots.objects = [pn.pane.HTML(f"{event.new}: {v}") for v in options.value]
