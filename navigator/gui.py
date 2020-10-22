@@ -30,7 +30,7 @@ def get_plots_list(df, filt, datastyle, number, category, compare=False, full_na
     paths = list(df.query(q).filename)
 
     inds = np.argsort(plots)
-    plots = plots[inds]
-    paths = paths[inds]
+    plots = list(np.array(plots)[inds])
+    paths = list(np.array(paths)[inds])
 
     return plots, paths
