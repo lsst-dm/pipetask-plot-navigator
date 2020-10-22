@@ -21,3 +21,5 @@ In the "Repository" text entry box, enter the path to a `pipe_analysis` plots di
 Interaction should be straightforward.  You can multi-select the "Plots" box.  More than four will require you to scroll; it should also in principle be possible to change the display sizes of the plots if that would be helpful.
 
 If any of the plots are miscategorized, let me know.
+
+![](screenshot.png)
