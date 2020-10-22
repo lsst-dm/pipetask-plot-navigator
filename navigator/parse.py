@@ -70,6 +70,8 @@ def build_df(filenames):
         }
     )
 
+    import pdb
+    pdb.set_trace()
     categories_df = pd.read_csv(category_path, index_col="name")
     df["category"] = categories_df.loc[df.short_content, "category"].values
 
