@@ -70,9 +70,12 @@ def build_df(filenames):
         }
     )
 
-    import pdb
-    pdb.set_trace()
     categories_df = pd.read_csv(category_path, index_col="name")
+
+    missing_content = set(df.short_content.unique()) - set(categories_df.index)
+    if len(missing_content) > 0:
+        raise RuntimeError(f'Please add the following plot types to {category_path} and run again: {missing_content}')
+
     df["category"] = categories_df.loc[df.short_content, "category"].values
 
     # Fill in the filter field for those missing
