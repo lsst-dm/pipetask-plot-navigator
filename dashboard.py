@@ -10,7 +10,7 @@ from navigator.parse import get_df
 pn.extension()
 
 repo_input = pn.widgets.TextInput(name="Repository", value="", width=500)
-submit_button = pn.widgets.Button(name='Submit')
+submit_button = pn.widgets.Button(name="Submit")
 
 
 gspec = pn.GridSpec(sizing_mode="stretch_height", max_height=800)
@@ -42,7 +42,7 @@ plot_names = pn.widgets.MultiSelect(
     ),
 )
 
-plots = pn.GridBox(['placeholder'], ncols=2)
+plots = pn.GridBox(["placeholder"], ncols=2)
 
 
 def update_df(event):
@@ -51,6 +51,7 @@ def update_df(event):
     update_categories(event)
     update_plot_names(event)
     plots.objects = []
+
 
 submit_button.on_click(update_df)
 
@@ -64,6 +65,8 @@ datastyle_select.param.watch(update_categories, "value")
 
 
 full_plot_paths = {}
+
+
 def update_plot_names(event):
     global full_plot_paths
 
@@ -99,7 +102,10 @@ def update_plots(event):
         # plots.objects = [pn.pane.HTML(f"{event.new}: {v}") for v in options.value]
 
 
+filter_select.param.watch(update_plots, "value")
+number_select.param.watch(update_plots, "value")
 plot_names.param.watch(update_plots, "value")
+
 # repo_input.param.watch(update_plots, "value")
 
 gspec[0, :] = repo_input
