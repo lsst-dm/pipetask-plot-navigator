@@ -2,6 +2,8 @@
 
 ## Usage
 
+I believe all necessary packages to run this should be in the shared stack.
+
 Clone this repo, then from the repo directory, run 
 ```
 panel serve dashboard.py --port 12345  # your favorite port number
