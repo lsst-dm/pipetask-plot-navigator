@@ -9,13 +9,16 @@ from navigator.parse import get_df
 
 pn.extension()
 
-repo_input = pn.widgets.TextInput(name="Repository", value="")
+repo_input = pn.widgets.TextInput(name="Repository", value="", width=500)
+submit_button = pn.widgets.Button(name='Submit')
 
-df = get_df(repo_input.value)
 
 gspec = pn.GridSpec(sizing_mode="stretch_height", max_height=800)
 
 allowed_categories = {"coadd": categories, "visit": categories[:-1]}
+
+
+df = None
 
 filter_select = pn.widgets.Select(name="Filter", options=filters, value=filters[0])
 datastyle_select = pn.widgets.RadioButtonGroup(name="Data style", options=datastyles, value=datastyles[0])
@@ -47,8 +50,9 @@ def update_df(event):
     df = get_df(repo_input.value)
     update_categories(event)
     update_plot_names(event)
+    plots.objects = []
 
-repo_input.param.watch(update_df, "value")
+submit_button.on_click(update_df)
 
 
 def update_categories(event):
@@ -82,7 +86,7 @@ datastyle_select.param.watch(update_plot_names, "value")
 category_select.param.watch(update_plot_names, "value")
 number_select.param.watch(update_plot_names, "value")
 compare_toggle.param.watch(update_plot_names, "value")
-repo_input.param.watch(update_plot_names, 'value')
+# repo_input.param.watch(update_plot_names, 'value')
 
 
 def update_plots(event):
@@ -96,17 +100,18 @@ def update_plots(event):
 
 
 plot_names.param.watch(update_plots, "value")
-repo_input.param.watch(update_plots, "value")
+# repo_input.param.watch(update_plots, "value")
 
-gspec[0, 0] = repo_input
-gspec[1, 0] = filter_select
-gspec[2, 0] = datastyle_select
-gspec[3, 0] = category_select
-gspec[4, 0] = number_select
-gspec[5, 0] = compare_toggle
-gspec[6:16, 0] = plot_names
+gspec[0, :] = repo_input
+gspec[1, 0] = submit_button
+gspec[2, 0] = filter_select
+gspec[3, 0] = datastyle_select
+gspec[4, 0] = category_select
+gspec[5, 0] = number_select
+gspec[6, 0] = compare_toggle
+gspec[7:16, 0] = plot_names
 # gspec[0, 1] = debug_text
-gspec[0, 1] = pn.Spacer()
+# gspec[0, 1] = pn.Spacer()
 gspec[1:, 1] = plots
 
 gspec.servable()
