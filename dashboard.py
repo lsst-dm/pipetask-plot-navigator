@@ -39,7 +39,7 @@ plot_names = pn.widgets.MultiSelect(
     ),
 )
 
-plots = pn.Column([debug_text])
+plots = pn.GridBox(['placeholder'], ncols=3)
 
 
 def update_df(event):
@@ -106,6 +106,6 @@ gspec[4, 0] = number_select
 gspec[5, 0] = compare_toggle
 gspec[6:16, 0] = plot_names
 gspec[0, 1] = debug_text
-gspec[1:, 1:4] = plots
+gspec[1:, 1] = plots
 
 gspec.servable()
