@@ -1,5 +1,6 @@
 import pandas as pd
 import panel as pn
+import numpy as np
 
 from .config import filters, datastyles, categories, plot_data_path
 
