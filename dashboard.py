@@ -88,7 +88,8 @@ repo_input.param.watch(update_plot_names, 'value')
 def update_plots(event):
     debug_text.value = event.new
     if isinstance(event.new, list):
-        plots.objects = [pn.pane.HTML(f"{full_plot_paths[v]}") for v in event.new]
+        # plots.objects = [pn.pane.HTML(f"{full_plot_paths[v]}") for v in event.new]
+        plots.objects = [pn.pane.PNG(full_plot_paths[v]) for v in event.new]
     else:
         pass
         # plots.objects = [pn.pane.HTML(f"{event.new}: {v}") for v in options.value]
