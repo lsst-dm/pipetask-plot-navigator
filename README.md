@@ -8,6 +8,10 @@ Clone this repo, then from the repo directory, run
 ```
 panel serve dashboard.py --port 12345  # your favorite port number
 ```
+Or, for the gen3 backend, run
+```
+panel serve dashboard_gen3.py --port 12345  # your favorite port number
+```
 
 Then tunnel to that port locally:
 ```
