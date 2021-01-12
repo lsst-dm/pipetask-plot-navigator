@@ -82,10 +82,11 @@ def update_plot_names(event):
         plot_refs.extend(refs)
         plot_names.extend(names)
         
-    plot_names.sort()
-    plot_select.options = plot_names
     
     plot_paths = {name: butler.getURI(ref, collections=collection_select.value).path for name, ref in zip(plot_names, plot_refs)}
+    
+    plot_names.sort()
+    plot_select.options = plot_names
     
 collection_select.param.watch(update_plot_names, 'value')
 plot_filter.param.watch(update_plot_names, 'value')
