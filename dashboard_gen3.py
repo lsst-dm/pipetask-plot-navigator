@@ -6,12 +6,10 @@ pn.extension()
 
 import lsst.daf.butler as dafButler
 
-default_repo = Path("/project/hsc/gen3repo/rc2w42_ssw46")
-
-config = default_repo.joinpath("butler.yaml")
-butler = dafButler.Butler(config=str(config))
-registry = butler.registry
-collections = list(registry.queryCollections())
+config = None
+butler = None
+registry = None
+collections = []
 
 pattern = re.compile(".*Plot.*")
 plot_paths = {}
@@ -29,7 +27,7 @@ root_entry = pn.widgets.TextInput(name="Repo root", value="/project/hsc/gen3repo
 repo_select = pn.widgets.Select(
     name="Repository",
     options=[p for p in Path(root_entry.value).glob("*") if p.joinpath("butler.yaml").exists()],
-    value=default_repo,
+    value=None,
 )
 collection_select = pn.widgets.AutocompleteInput(name="Collection", options=collections)
 tract_select = pn.widgets.MultiSelect(name="Tract", options=[])
@@ -38,9 +36,10 @@ plot_filter = pn.widgets.TextInput(name="Plot name filter", value="")
 plot_select = pn.widgets.MultiSelect(name="Plots", options=[],)
 
 debug_text = pn.widgets.StaticText(value=f"config = {config}")
+alert = pn.pane.Alert('', alert_type='dark')
 
 
-plots = pn.GridBox(["placeholder"], ncols=2)
+plots = pn.GridBox(["Plots will show up here when selected."], ncols=2)
 
 
 def update_butler(event):
@@ -53,13 +52,19 @@ def update_butler(event):
         butler = dafButler.Butler(config=str(config))
         registry = butler.registry
         collections = list(registry.queryCollections())
-        collection_select.value = ""
+        collection_select.options = collections
+        collection_select.value = collections[0]
 
-        debug_text.value = f"successfully loaded butler from {config}"
+        debug_text.value = f"Successfully loaded butler from {config}."
+#         alert.alert_type = 'success'
+#         alert.object = f'Successfully loaded butler from {config}'
     except:
         debug_text.value = f"Failed to load Butler from {config}"
         collection_select.value = ""
-
+#         raise
+#         alert.alert_type = 'danger'
+#         alert.object = f"Failed to load Butler from {config}"
+        
 
 root_entry.param.watch(update_butler, "value")
 repo_select.param.watch(update_butler, "value")
@@ -70,9 +75,7 @@ def update_tract_select(event):
     tract_select.options = get_tracts(refs)
     tract_select.value = []
 
-
 collection_select.param.watch(update_tract_select, "value")
-
 
 def update_plot_names(event):
     global plot_paths
@@ -102,8 +105,10 @@ def update_plot_names(event):
 
     plot_names.sort()
     plot_select.options = plot_names
+        
 
-
+root_entry.param.watch(update_plot_names, 'value')
+repo_select.param.watch(update_plot_names, 'value')
 collection_select.param.watch(update_plot_names, "value")
 plot_filter.param.watch(update_plot_names, "value")
 tract_select.param.watch(update_plot_names, "value")
@@ -128,7 +133,8 @@ gspec[2, 0] = collection_select
 gspec[3, 0] = tract_select
 gspec[4, 0] = plot_filter
 gspec[5:10, 0] = plot_select
-# gspec[0, 1] = debug_text
+gspec[0, 1] = debug_text
+# gspec[0, 1] = alert
 gspec[1:, 1] = plots
 
 gspec.servable()
