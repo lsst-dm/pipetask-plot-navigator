@@ -36,7 +36,6 @@ plot_filter = pn.widgets.TextInput(name="Plot name filter", value="")
 plot_select = pn.widgets.MultiSelect(name="Plots", options=[],)
 
 debug_text = pn.widgets.StaticText(value=f"config = {config}")
-alert = pn.pane.Alert('', alert_type='dark')
 
 
 plots = pn.GridBox(["Plots will show up here when selected."], ncols=2)
@@ -56,14 +55,10 @@ def update_butler(event):
         collection_select.value = collections[0]
 
         debug_text.value = f"Successfully loaded butler from {config}."
-#         alert.alert_type = 'success'
-#         alert.object = f'Successfully loaded butler from {config}'
     except:
         debug_text.value = f"Failed to load Butler from {config}"
         collection_select.value = ""
 #         raise
-#         alert.alert_type = 'danger'
-#         alert.object = f"Failed to load Butler from {config}"
         
 
 root_entry.param.watch(update_butler, "value")
@@ -134,7 +129,6 @@ gspec[3, 0] = tract_select
 gspec[4, 0] = plot_filter
 gspec[5:10, 0] = plot_select
 gspec[0, 1] = debug_text
-# gspec[0, 1] = alert
 gspec[1:, 1] = plots
 
 gspec.servable()
