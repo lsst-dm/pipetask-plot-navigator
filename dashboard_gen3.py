@@ -218,4 +218,4 @@ gspec[0, 2:4] = debug_text
 # gspec[0, 1] = alert
 gspec[1:, 2:4] = pn.Tabs(('collection 1', plots), ('collection 2', plots2))
 
-gspec
+gspec.servable()
