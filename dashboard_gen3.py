@@ -195,10 +195,10 @@ tract_select.param.watch(update_plot_names, "value")
 
 
 def get_png(name):
-    return pn.pane.PNG(plot_paths[name], width=600)
+    return pn.pane.PNG(plot_paths[name], width=width_entry.value)
 
 def get_png2(name):
-    return pn.pane.PNG(plot_paths2[name], width=600)
+    return pn.pane.PNG(plot_paths2[name], width=width_entry.value)
 
 def update_plots(event):
 #     debug_text.value = [plot_paths[name] for name in event.new]    
@@ -212,12 +212,12 @@ def update_plot_layout(event):
     
 #     debug_text.value = str(f'new number is {event.new}')        
     for plot in plots:
-        plot.width = int(width_entry.value)
+        plot.width = width_entry.value
     for plot in plots2:
-        plot.width = int(width_entry.value)
+        plot.width = width_entry.value
     
-    plots.ncols = int(ncols_entry).value
-    plots2.ncols = int(ncols_entry).value    
+    plots.ncols = ncols_entry.value
+    plots2.ncols = ncols_entry.value    
         
 width_entry.param.watch(update_plot_layout, "value")
 ncols_entry.param.watch(update_plot_layout, "value")
