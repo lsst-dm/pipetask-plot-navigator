@@ -52,9 +52,10 @@ plot_select = pn.widgets.MultiSelect(name="Plots", options=[],)
 debug_text = pn.widgets.StaticText(value=f"config = {config}")
 alert = pn.pane.Alert('', alert_type='dark')
 
-
-width_slider = pn.widgets.IntSlider(name='Plot width', start=400, end=1200, step=50, value=600)
-ncols_slider = pn.widgets.IntSlider(name='Number of columns', start=1, end=4, step=1, value=2)
+width_entry = pn.widgets.IntInput(name="Plot width", start=300, end=1200, step=50, value=600)
+ncols_entry = pn.widgets.IntInput(name="n_cols", start=1, end=4, step=1, value=2)
+# width_slider = pn.widgets.IntSlider(name='Plot width', start=400, end=1200, step=50, value=600)
+# ncols_slider = pn.widgets.IntSlider(name='Number of columns', start=1, end=4, step=1, value=2)
 
 plots = pn.GridBox(["Plots will show up here when selected."], ncols=2)
 plots2 = pn.GridBox([], ncols=2)
@@ -211,15 +212,15 @@ def update_plot_layout(event):
     
 #     debug_text.value = str(f'new number is {event.new}')        
     for plot in plots:
-        plot.width = width_slider.value
+        plot.width = int(width_entry.value)
     for plot in plots2:
-        plot.width = width_slider.value
+        plot.width = int(width_entry.value)
     
-    plots.ncols = ncols_slider.value
-    plots2.ncols = ncols_slider.value    
+    plots.ncols = int(ncols_entry).value
+    plots2.ncols = int(ncols_entry).value    
         
-width_slider.param.watch(update_plot_layout, "value")
-ncols_slider.param.watch(update_plot_layout, "value")
+width_entry.param.watch(update_plot_layout, "value")
+ncols_entry.param.watch(update_plot_layout, "value")
 
 gspec = pn.GridSpec(sizing_mode="stretch_height", max_height=800)
 
@@ -233,8 +234,8 @@ gspec[4, 0:2] = plot_filter
 gspec[5:10, 0:2] = plot_select
 gspec[0, 2:4] = debug_text
 # gspec[0, 1] = alert
-gspec[1, 2:4] = width_slider
-gspec[2, 2:4] = ncols_slider
-gspec[3:, 2:4] = pn.Tabs(('collection 1', plots), ('collection 2', plots2))
+gspec[1, 2] = width_entry
+gspec[1, 3] = ncols_entry
+gspec[2:, 2:4] = pn.Tabs(('collection 1', plots), ('collection 2', plots2))
 
 gspec.servable()
