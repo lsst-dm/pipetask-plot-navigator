@@ -50,7 +50,6 @@ plot_filter = pn.widgets.TextInput(name="Plot name filter", value="")
 plot_select = pn.widgets.MultiSelect(name="Plots", options=[],)
 
 debug_text = pn.widgets.StaticText(value=f"config = {config}")
-alert = pn.pane.Alert('', alert_type='dark')
 
 width_entry = pn.widgets.IntInput(name="Plot width", start=300, end=1200, step=50, value=600)
 ncols_entry = pn.widgets.IntInput(name="n_cols", start=1, end=4, step=1, value=2)
@@ -233,7 +232,6 @@ gspec[3, 0:2] = tract_select
 gspec[4, 0:2] = plot_filter
 gspec[5:10, 0:2] = plot_select
 gspec[0, 2:4] = debug_text
-# gspec[0, 1] = alert
 gspec[1, 2] = width_entry
 gspec[1, 3] = ncols_entry
 gspec[2:, 2:4] = pn.Tabs(('collection 1', plots), ('collection 2', plots2))
