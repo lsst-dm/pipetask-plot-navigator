@@ -29,7 +29,7 @@ def get_tracts(refs):
     return tracts
 
 
-root_entry = pn.widgets.TextInput(name="Repo root", value="/project/hsc/gen3repo")
+root_entry = pn.widgets.TextInput(name="Repo root", value=".")  # /project/hsc/gen3repo
 repo_select = pn.widgets.Select(
     name="Repository",
     options=[p for p in Path(root_entry.value).glob("*") if p.joinpath("butler.yaml").exists()],
@@ -76,6 +76,8 @@ def update_butler(event):
         debug_text.value = f"Failed to load Butler from {config}"
         collection_select.value = ""        
 
+update_butler(None)
+
 root_entry.param.watch(update_butler, "value")
 repo_select.param.watch(update_butler, "value")
 
@@ -105,7 +107,7 @@ def update_butler2(event):
     except:
         debug_text.value = f"Failed to load butler2 from {config}"
         collection2_select.value = ""
-#         raise
+        # raise
 
 root_entry.param.watch(update_butler2, "value")
 repo2_select.param.watch(update_butler2, "value")
@@ -182,8 +184,6 @@ def update_plot_names(event):
     plot_names.sort()
     plot_select.options = plot_names
         
-
-root_entry.param.watch(update_plot_names, 'value')
 repo_select.param.watch(update_plot_names, 'value')
 collection_select.param.watch(update_plot_names, "value")
 repo2_select.param.watch(update_plot_names, 'value')
