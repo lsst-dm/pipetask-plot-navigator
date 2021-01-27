@@ -223,14 +223,14 @@ ncols_entry.param.watch(update_plot_layout, "value")
 
 gspec = pn.GridSpec(sizing_mode="stretch_height", max_height=800)
 
+repo_collection_tabs = pn.Tabs(('Collection 1', pn.Column(repo_select, collection_select)), 
+                               ('Collection 2', pn.Column(repo2_select, collection2_select)))
+
 gspec[0, 0:2] = root_entry
-gspec[1, 0] = repo_select
-gspec[2, 0] = collection_select
-gspec[1, 1] = repo2_select
-gspec[2, 1] = collection2_select
+gspec[1:3, 0:2] = repo_collection_tabs
 gspec[3, 0:2] = tract_select
 gspec[4, 0:2] = plot_filter
-gspec[5:10, 0:2] = plot_select
+gspec[5:12, 0:2] = plot_select
 gspec[0, 2:4] = debug_text
 gspec[1, 2] = width_entry
 gspec[1, 3] = ncols_entry
