@@ -43,7 +43,6 @@ repo2_select = pn.widgets.Select(
 )
 collection2_select = pn.widgets.AutocompleteInput(name="Collection 2", options=collections2)
 
-
 tract_select = pn.widgets.MultiSelect(name="Tract", options=[])
 plot_filter = pn.widgets.TextInput(name="Plot name filter", value="")
 
@@ -221,6 +220,17 @@ def update_plot_layout(event):
 width_entry.param.watch(update_plot_layout, "value")
 ncols_entry.param.watch(update_plot_layout, "value")
 
+
+refresh_button = pn.widgets.Button(name='Reload', button_type='default')
+
+def refresh(event):
+    update_plot_names(event)
+    plots.objects = [get_png(name) for name in plot_select.value]
+    if registry2 is not None:
+        plots2.objects = [get_png2(name) for name in plot_select.value]
+        
+refresh_button.on_click(refresh)
+
 gspec = pn.GridSpec(sizing_mode="stretch_height", max_height=800)
 
 repo_collection_tabs = pn.Tabs(('Collection 1', pn.Column(repo_select, collection_select)), 
@@ -228,9 +238,10 @@ repo_collection_tabs = pn.Tabs(('Collection 1', pn.Column(repo_select, collectio
 
 gspec[0, 0:2] = root_entry
 gspec[1:3, 0:2] = repo_collection_tabs
-gspec[3, 0:2] = tract_select
-gspec[4, 0:2] = plot_filter
-gspec[5:12, 0:2] = plot_select
+gspec[3, 0:2] = refresh_button
+gspec[4, 0:2] = tract_select
+gspec[5, 0:2] = plot_filter
+gspec[6:12, 0:2] = plot_select
 gspec[0, 2:4] = debug_text
 gspec[1, 2] = width_entry
 gspec[1, 3] = ncols_entry
