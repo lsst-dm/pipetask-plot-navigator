@@ -26,6 +26,8 @@ Interaction should be straightforward.  You can multi-select the "Plots" box.  M
 
 If any of the plots are miscategorized, let me know.
 
+![](screencast.gif)
+
 ## Build & Run docker container
 
 For example:
@@ -33,5 +35,3 @@ For example:
 docker build -t dashboard .
 docker run -it -p 12345:12345 dashboard   # for port forwarding
 ```
-
-![](screencast.gif)
