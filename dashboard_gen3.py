@@ -22,7 +22,25 @@ plot_paths2 = {}
 
 pn.extension()
 
+def initialize():
+    global config, butler, registry, collections
+    global config2, butler2, registry2, collections2
 
+    global plot_paths, plot_paths2
+    
+    config = None
+    butler = None
+    registry = None
+    collections = []
+    
+    config2 = None
+    butler2 = None
+    registry2 = None
+    collections2 = []
+    
+    plot_paths = {}
+    plot_paths2 = {}
+    
 def get_tracts(refs):
     tracts = list(set(r.dataId["tract"] for r in refs))
     tracts.sort()
@@ -58,6 +76,12 @@ ncols_entry = pn.widgets.IntInput(name="n_cols", start=1, end=4, step=1, value=2
 plots = pn.GridBox(["Plots will show up here when selected."], ncols=2)
 plots2 = pn.GridBox([], ncols=2)
 
+def update_repo_root(event):
+    repo_select.options = [p for p in Path(root_entry.value).glob("*") if p.joinpath("butler.yaml").exists()]
+    update_butler(None)
+    
+root_entry.param.watch(update_repo_root, 'value')
+
 def update_butler(event):
     global config
     global butler
@@ -74,11 +98,10 @@ def update_butler(event):
         debug_text.value = f"Successfully loaded butler from {config}."
     except:
         debug_text.value = f"Failed to load Butler from {config}"
-        collection_select.value = ""        
+#         collection_select.value = ""        
 
 update_butler(None)
 
-root_entry.param.watch(update_butler, "value")
 repo_select.param.watch(update_butler, "value")
 
 
@@ -106,23 +129,30 @@ def update_butler2(event):
             debug_text.value = f"Successfully loaded butler2 from {config}."
     except:
         debug_text.value = f"Failed to load butler2 from {config}"
-        collection2_select.value = ""
-        # raise
+#         collection2_select.value = ""
+        raise
 
-root_entry.param.watch(update_butler2, "value")
+# root_entry.param.watch(update_butler2, "value")
 repo2_select.param.watch(update_butler2, "value")
 
 
 def update_tract_select(event):
-    refs = list(registry.queryDatasets(pattern, collections=collection_select.value, findFirst=True))
-    if registry2 is not None:
-        refs2 = list(registry2.queryDatasets(pattern, collections=collection2_select.value, findFirst=True))
-    else:
-        refs2 = refs
+    global registry
     
-    tract_select.options = list(set(get_tracts(refs)).intersection(set(get_tracts(refs2))))
-    tract_select.value = []
+    if registry is not None:
+        try:
+            refs = list(registry.queryDatasets(pattern, collections=collection_select.value, findFirst=True))
+            if registry2 is not None:
+                refs2 = list(registry2.queryDatasets(pattern, collections=collection2_select.value, findFirst=True))
+            else:
+                refs2 = refs
 
+            tract_select.options = list(set(get_tracts(refs)).intersection(set(get_tracts(refs2))))
+            tract_select.value = []
+        except:
+            debug_text.value += f'; {event.new}'
+#             raise
+        
 collection_select.param.watch(update_tract_select, "value")
 collection2_select.param.watch(update_tract_select, "value")
 
@@ -184,7 +214,6 @@ def update_plot_names(event):
     plot_names.sort()
     plot_select.options = plot_names
         
-repo_select.param.watch(update_plot_names, 'value')
 collection_select.param.watch(update_plot_names, "value")
 repo2_select.param.watch(update_plot_names, 'value')
 collection2_select.param.watch(update_plot_names, "value")
@@ -220,10 +249,11 @@ def update_plot_layout(event):
 width_entry.param.watch(update_plot_layout, "value")
 ncols_entry.param.watch(update_plot_layout, "value")
 
-
 refresh_button = pn.widgets.Button(name='Reload', button_type='default')
 
 def refresh(event):
+    update_butler(event)
+    update_tract_select(event)
     update_plot_names(event)
     plots.objects = [get_png(name) for name in plot_select.value]
     if registry2 is not None:
