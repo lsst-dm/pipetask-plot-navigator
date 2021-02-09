@@ -12,9 +12,10 @@ RUN wget \
     && rm -f Miniconda3-latest-Linux-x86_64.sh 
 RUN conda --version
 
-# Install panel 
+# Install panel & dask
 
-RUN conda install -c holoviz panel
+RUN conda install -c holoviz panel \
+    && conda install dask-kubernetes -c conda-forge
 
 # Clone dashboard repo
 
