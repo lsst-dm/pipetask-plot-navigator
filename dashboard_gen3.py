@@ -4,7 +4,7 @@ import panel as pn
 from dask_kubernetes import KubeCluster
 
 cluster = KubeCluster.from_yaml('worker-spec.yml')
-cluster.scale(4)  # specify number of workers explicitly
+cluster.scale(1)  # specify number of workers explicitly
 
 pn.extension()
 
