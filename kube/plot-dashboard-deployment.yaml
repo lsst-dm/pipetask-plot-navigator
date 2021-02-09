@@ -20,11 +20,11 @@ spec:
         imagePullPolicy: Never
         resources:
           requests:
-            memory: 3Gi
-            cpu: 1
+            memory: 6Gi
+            cpu: 2
           limits:
-            memory: 3Gi
-            cpu: 1
+            memory: 6Gi
+            cpu: 2
         env:
         ports:
         - containerPort: 55555
