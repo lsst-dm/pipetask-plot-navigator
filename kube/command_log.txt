@@ -1,12 +1,20 @@
+# build image
 minikube start --driver=virtualbox
 minikube ssh
 git clone https://github.com/timothydmorton/pipe-analysis-navigator
 cd pipe-analysis-navigator
 docker build -t dashboard
 exit
+
+# deploy
 cd repositories/pipe-analysis-navigator/kube
 kubectl apply -f namespace-localhost.json
 kubectl apply -f plot-dashboard-deployment.yaml
 kubectl apply -f plot-dashboard-service.json
 kubectl expose deployment plot-dashboard-deployment --type=NodePort --port=55555
 kubectl port-forward service/plot-dashboard-deployment 55555:55555
+
+
+# update deployment
+# rebuild docker image in minikube ssh, then
+kubectl set image deployment/plot-dashboard-deployment plot-dashboard=dashboard:latest

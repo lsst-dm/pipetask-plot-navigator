@@ -1,6 +1,10 @@
 from pathlib import Path
 import re
 import panel as pn
+from dask_kubernetes import KubeCluster
+
+cluster = KubeCluster.from_yaml('worker-spec.yml')
+cluster.scale(4)  # specify number of workers explicitly
 
 pn.extension()
 
@@ -47,7 +51,7 @@ def get_tracts(refs):
     return tracts
 
 
-root_entry = pn.widgets.TextInput(name="Repo root (testing)", value=".")  # /project/hsc/gen3repo
+root_entry = pn.widgets.TextInput(name="Repo root", value=".")  # /project/hsc/gen3repo
 repo_select = pn.widgets.Select(
     name="Repository",
     options=[p for p in Path(root_entry.value).glob("*") if p.joinpath("butler.yaml").exists()],
