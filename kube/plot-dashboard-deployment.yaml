@@ -14,12 +14,12 @@ spec:
       labels:
         app: plot-dashboard
     spec:
+      securityContext:
+        privileged: true
       containers:
       - name: plot-dashboard
         image: dashboard
         imagePullPolicy: Never
-        securityContext:
-          privileged: true
         resources:
           requests:
             memory: 6Gi
