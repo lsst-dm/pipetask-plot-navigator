@@ -19,12 +19,12 @@ RUN conda install -c holoviz panel \
 
 # Clone dashboard repo
 
-RUN git clone https://github.com/timothydmorton/pipe-analysis-navigator.git
-
 RUN git clone https://github.com/lsst/daf_butler \
     && cd daf_butler \
     && pip install . \
     && cd ..
+
+RUN git clone https://github.com/timothydmorton/pipe-analysis-navigator.git
 
 # to mount volume: -v /project[original path]:/project [inside path]
 # for ports, also at "docker run" time, then map ports, 55555:55555
