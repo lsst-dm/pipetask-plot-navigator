@@ -3,8 +3,8 @@ import re
 import panel as pn
 from dask_kubernetes import KubeCluster
 
-cluster = KubeCluster.from_yaml('worker-spec.yml')
-cluster.scale(1)  # specify number of workers explicitly
+# cluster = KubeCluster.from_yaml('worker-spec.yml')
+# cluster.scale(1)  # specify number of workers explicitly
 
 pn.extension()
 
