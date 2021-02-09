@@ -18,6 +18,8 @@ spec:
       - name: plot-dashboard
         image: dashboard
         imagePullPolicy: Never
+        securityContext:
+          privileged: true
         resources:
           requests:
             memory: 6Gi
