@@ -1,0 +1,11 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: plot-dashboard-service
+spec:
+  selector:
+    app: plot-dashboard
+  ports:
+  - protocol: TCP
+    port: 5000
+    targetPort: 5000

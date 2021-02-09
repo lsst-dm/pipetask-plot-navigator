@@ -1,0 +1,30 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: plot-dashboard-deployment
+  labels:
+    app: plot-dashboard
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: plot-dashboard
+  template:
+    metadata:
+      labels:
+        app: plot-dashboard
+    spec:
+      containers:
+      - name: plot-dashboard
+        image: dashboard
+        imagePullPolicy: Never
+        resources:
+          requests:
+            memory: 3Gi
+            cpu: 1
+          limits:
+            memory: 3Gi
+            cpu: 1
+        env:
+        ports:
+        - containerPort: 55555
