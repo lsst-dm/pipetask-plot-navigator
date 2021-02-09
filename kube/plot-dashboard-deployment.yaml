@@ -14,10 +14,11 @@ spec:
       labels:
         app: plot-dashboard
     spec:
-      securityContext:
-        privileged: true
       containers:
       - name: plot-dashboard
+        securityContext:
+          privileged: true
+          allowPrivilegeEscalation: true
         image: dashboard
         imagePullPolicy: Never
         resources:
