@@ -16,18 +16,15 @@ spec:
     spec:
       containers:
       - name: plot-dashboard
-        securityContext:
-          privileged: true
-          allowPrivilegeEscalation: true
         image: dashboard
         imagePullPolicy: Never
         resources:
           requests:
-            memory: 6Gi
-            cpu: 2
+            memory: 8Gi
+            cpu: 4
           limits:
-            memory: 6Gi
-            cpu: 2
+            memory: 8Gi
+            cpu: 4
         env:
         ports:
         - containerPort: 55555
