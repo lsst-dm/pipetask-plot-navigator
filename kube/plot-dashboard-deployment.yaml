@@ -28,3 +28,7 @@ spec:
         env:
         ports:
         - containerPort: 55555
+        - name: dask-dashboard 
+          protocol: TCP
+          port: 8787
+          targetPort: 8787
