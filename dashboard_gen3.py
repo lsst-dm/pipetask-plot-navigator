@@ -14,7 +14,7 @@ cluster = LocalCluster()
 cluster.adapt(minimum=1, maximum=4)
 
 # Connect Dask to the cluster
-client = Client()
+client = Client(cluster)
 print(client)
 
 # Create a large array and calculate the mean
