@@ -11,7 +11,6 @@ import dask.array as da
 
 # Create localcluster
 cluster = LocalCluster()
-cluster.adapt(minimum=1, maximum=4)
 
 # Connect Dask to the cluster
 client = Client(cluster)

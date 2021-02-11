@@ -21,3 +21,7 @@ kubectl set image deployment/plot-dashboard-deployment plot-dashboard=dashboard:
 
 # log into service pod
 kubectl exec --stdin --tty <podname> -n <namespace> -- /bin/bash
+
+# to delete deployment/service and start again
+kubectl delete -f plot-dashboard-deployment.yaml
+kubectl delete -f plot-dashboard-service.yaml

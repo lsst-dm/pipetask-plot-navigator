@@ -20,15 +20,9 @@ spec:
         imagePullPolicy: Never
         resources:
           requests:
-            memory: 8Gi
-            cpu: 4
-          limits:
-            memory: 8Gi
-            cpu: 4
+            memory: 4Gi
+            cpu: 1
         env:
         ports:
         - containerPort: 55555
-        - name: dask-dashboard 
-          protocol: TCP
-          port: 8787
-          targetPort: 8787
+        - containerPort: 8787
