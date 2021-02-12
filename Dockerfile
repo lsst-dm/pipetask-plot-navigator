@@ -39,3 +39,4 @@ RUN git clone -b main https://github.com/timothydmorton/pipe-analysis-navigator.
 #CMD cd pipe-analysis-navigator \
 #    && python test_dask.py
 
+CMD /bin/bash
