@@ -1,4 +1,4 @@
-FROM ubuntu:18.04
+FROM ubuntu:20.04
 ENV PATH="/root/miniconda3/bin:${PATH}"
 ARG PATH="/root/miniconda3/bin:${PATH}"
 RUN apt-get update
@@ -17,7 +17,7 @@ RUN conda install pip -c conda-forge
 # Install daf_butler
 RUN git clone https://github.com/lsst/daf_butler \
     && cd daf_butler \
-    && pip install . --no-binary lsst-sphgeom \
+    && pip install . \
     && cd ..
 
 # Install panel & dask
