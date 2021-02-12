@@ -12,18 +12,20 @@ RUN wget \
     && rm -f Miniconda3-latest-Linux-x86_64.sh 
 RUN conda --version
 
-# Install panel & dask
+RUN conda install pip -c conda-forge
 
-RUN conda install -c holoviz panel \
-    && conda install compilers dask distributed -c conda-forge
-
-# Clone dashboard repo
-
+# Install daf_butler
 RUN git clone https://github.com/lsst/daf_butler \
     && cd daf_butler \
     && pip install . \
     && cd ..
 
+# Install panel & dask
+
+RUN conda install -c holoviz panel \
+    && conda install dask distributed -c conda-forge
+
+# Clone dashboard repo
 ADD https://api.github.com/repos/timothydmorton/pipe-analysis-navigator/git/refs/heads/main version.json
 RUN git clone -b dask-test https://github.com/timothydmorton/pipe-analysis-navigator.git
 
