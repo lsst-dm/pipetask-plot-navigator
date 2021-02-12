@@ -2,12 +2,6 @@ FROM daskdev/dask
 
 ENV EXTRA_PIP_PACKAGES="panel"
 
-# Install daf_butler
-RUN git clone https://github.com/lsst/daf_butler \
-    && cd daf_butler \
-    && pip install . \
-    && cd ..
-
 # Clone dashboard repo
 ADD https://api.github.com/repos/timothydmorton/pipe-analysis-navigator/git/refs/heads/main version.json
 RUN git clone -b dask-test https://github.com/timothydmorton/pipe-analysis-navigator.git
