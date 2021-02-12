@@ -11,7 +11,7 @@ cd repositories/pipe-analysis-navigator/kube
 kubectl apply -f namespace-localhost.json
 kubectl apply -f plot-dashboard-deployment.yaml
 kubectl apply -f plot-dashboard-service.yaml
-kubectl expose deployment plot-dashboard-deployment --type=NodePort --port=55555
+# kubectl expose deployment plot-dashboard-deployment --type=NodePort --port=55555
 kubectl port-forward service/plot-dashboard-deployment 55555:55555
 
 
