@@ -14,6 +14,6 @@ RUN git clone -b dask-test https://github.com/timothydmorton/pipe-analysis-navig
 # CMD cd pipe-analysis-navigator \
 #    && panel serve dashboard_gen3.py --port 55555
 
-CMD cd pipe-analysis-navigator \
-    && python test_dask.py
+#CMD cd pipe-analysis-navigator \
+#    && python test_dask.py
 
