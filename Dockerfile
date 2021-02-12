@@ -1,30 +1,12 @@
-FROM ubuntu:20.04
-ENV PATH="/root/miniconda3/bin:${PATH}"
-ARG PATH="/root/miniconda3/bin:${PATH}"
-RUN apt-get update
+FROM daskdev/dask
 
-RUN apt-get install -y wget git build-essential sqlite libyaml-dev \
-     && rm -rf /var/lib/apt/lists/* 
-
-RUN wget \
-    https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh \
-    && mkdir /root/.conda \
-    && bash Miniconda3-latest-Linux-x86_64.sh -b \
-    && rm -f Miniconda3-latest-Linux-x86_64.sh 
-RUN conda --version
-
-RUN conda install pip -c conda-forge
+ENV EXTRA_PIP_PACKAGES="panel"
 
 # Install daf_butler
 RUN git clone https://github.com/lsst/daf_butler \
     && cd daf_butler \
     && pip install . \
     && cd ..
-
-# Install panel & dask
-
-RUN conda install -c holoviz panel \
-    && conda install dask distributed -c conda-forge
 
 # Clone dashboard repo
 ADD https://api.github.com/repos/timothydmorton/pipe-analysis-navigator/git/refs/heads/main version.json
