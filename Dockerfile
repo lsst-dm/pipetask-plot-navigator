@@ -17,7 +17,7 @@ RUN conda install pip -c conda-forge
 # Install daf_butler
 RUN git clone https://github.com/lsst/daf_butler \
     && cd daf_butler \
-    && pip install . \
+    && pip install . --no-binary \
     && cd ..
 
 # Install panel & dask
