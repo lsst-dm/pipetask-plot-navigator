@@ -1,25 +1,6 @@
 from pathlib import Path
 import re
 import panel as pn
-# from dask_kubernetes import KubeCluster
-
-# cluster = KubeCluster.from_yaml('worker-spec.yml')
-# cluster.scale(2)  # specify number of workers explicitly
-
-from dask.distributed import Client, LocalCluster
-import dask.array as da
-
-# Create localcluster
-cluster = LocalCluster()
-
-# Connect Dask to the cluster
-client = Client(cluster)
-print(client)
-
-# Create a large array and calculate the mean
-array = da.ones((1000, 1000, 1000))
-print(array.mean().compute())  # Should print 1.0
-
 
 pn.extension()
 
