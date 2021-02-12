@@ -3,7 +3,10 @@ ENV PATH="/root/miniconda3/bin:${PATH}"
 ARG PATH="/root/miniconda3/bin:${PATH}"
 RUN apt-get update
 
-RUN apt-get install -y wget git build-essential && rm -rf /var/lib/apt/lists/* 
+RUN apt-get install -y wget git build-essential sqlite libyaml-dev \
+     && rm -rf /var/lib/apt/lists/* 
+
+RUN apt install postgresql
 
 RUN wget \
     https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh \
