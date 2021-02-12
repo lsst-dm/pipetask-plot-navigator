@@ -1,6 +1,6 @@
 FROM daskdev/dask
 
-ENV EXTRA_PIP_PACKAGES="panel"
+RUN pip install panel
 
 # Clone dashboard repo
 ADD https://api.github.com/repos/timothydmorton/pipe-analysis-navigator/git/refs/heads/main version.json
