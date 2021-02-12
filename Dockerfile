@@ -15,7 +15,7 @@ RUN conda --version
 # Install panel & dask
 
 RUN conda install -c holoviz panel \
-    && conda install compiliers dask distributed -c conda-forge
+    && conda install compilers dask distributed -c conda-forge
 
 # Clone dashboard repo
 
