@@ -1,38 +1,23 @@
-FROM ubuntu:18.04
-ENV PATH="/root/miniconda3/bin:${PATH}"
-ARG PATH="/root/miniconda3/bin:${PATH}"
-RUN apt-get update
+FROM continuumio/miniconda3:4.9.2
 
-RUN apt-get install -y wget git build-essential && rm -rf /var/lib/apt/lists/* 
+RUN apt-get update && \
+    apt-get install -y \
+        build-essential \
+    && rm -rf /var/lib/apt/lists/* 
 
-RUN wget \
-    https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh \
-    && mkdir /root/.conda \
-    && bash Miniconda3-latest-Linux-x86_64.sh -b \
-    && rm -f Miniconda3-latest-Linux-x86_64.sh 
-RUN conda --version
+RUN git clone https://github.com/lsst/sphgeom /lsst-sphgeom
+WORKDIR /lsst-sphgeom
+RUN pip install .
+RUN git clone https://github.com/lsst/daf_butler /lsst-daf_butler
+WORKDIR /lsst-daf_butler
+RUN pip install .
+WORKDIR /
 
-# Install panel & dask
+RUN conda install -c holoviz panel=0.10.2 
+RUN conda install bokeh=2.2.2
+# RUN conda install -c dask-kubernetes -c conda-forge
 
-RUN conda install -c holoviz panel \
-    && conda install dask-kubernetes -c conda-forge
+COPY src/ /pipe-analysis-navigator/
+WORKDIR /pipe-analysis-navigator
 
-# Clone dashboard repo
-
-RUN git clone https://github.com/lsst/daf_butler \
-    && cd daf_butler \
-    && pip install . \
-    && cd ..
-
-ADD https://api.github.com/repos/timothydmorton/pipe-analysis-navigator/git/refs/heads/main version.json
-RUN git clone -b main https://github.com/timothydmorton/pipe-analysis-navigator.git
-
-# to mount volume: -v /project[original path]:/project [inside path]
-# for ports, also at "docker run" time, then map ports, 55555:55555
-
-# Launch dashboard
-
-CMD cd pipe-analysis-navigator \
-    && panel serve dashboard_gen3.py --port 55555
-
-
+CMD panel serve dashboard_gen3.py --port 8080
