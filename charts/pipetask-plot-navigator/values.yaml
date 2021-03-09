@@ -1,6 +1,6 @@
 hostname: lsst-sandbox.ncsa.illinois.edu
 # Include leading forward slash in basePath
-basePath: /pan-test
+basePath: /pipetask-plot-navigator
 image:
-  repository: lsstdm/pipe-analysis-navigator
+  repository: lsstdm/pipetask-plot-navigator
   tag: latest
