@@ -1,0 +1,17 @@
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: pipe-analysis-navigator
+spec:
+  rules:
+  - host: {{ .Values.hostname }}
+    http:
+      paths:
+      - path: {{ .Values.basePath }}
+        pathType: Prefix
+        backend:
+          service:
+            name: pipe-analysis-navigator
+            port: 
+              number: 80
