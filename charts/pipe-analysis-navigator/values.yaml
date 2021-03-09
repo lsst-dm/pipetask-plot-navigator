@@ -1,0 +1,6 @@
+hostname: lsst-sandbox.ncsa.illinois.edu
+# Include leading forward slash in basePath
+basePath: /pan-test
+image:
+  repository: lsstdm/pipe-analysis-navigator
+  tag: latest

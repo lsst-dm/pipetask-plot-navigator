@@ -1,0 +1,23 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pipe-analysis-navigator
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: pipe-analysis-navigator
+  template:
+    metadata:
+      labels:
+        app: pipe-analysis-navigator
+    spec:
+      containers:
+      - name: pipe-analysis-navigator
+        image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
+        imagePullPolicy: Always
+        command:
+          - /bin/bash
+          - -c 
+          - panel serve dashboard_gen3.py --port {{ .Values.port | default 8080 }} --prefix {{ .Values.basePath }} --allow-websocket-origin {{ .Values.hostname }}
