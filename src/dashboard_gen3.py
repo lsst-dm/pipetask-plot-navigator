@@ -1,6 +1,7 @@
 """
 Dashboard for pipetask-plot-navigator
 
+
 """
 from pathlib import Path
 import re
