@@ -4,7 +4,7 @@ Pipe Analysis Navigator
 Overview
 ------------------------
 
-See the source code [Readme.md](./src/Readme.md) for details about usage.
+See the source code [README.md](./src/README.md) for details about usage.
 
 Local Development
 ------------------------
