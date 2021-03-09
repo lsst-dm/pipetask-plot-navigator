@@ -17,7 +17,7 @@ RUN conda install -c holoviz panel=0.10.2
 RUN conda install bokeh=2.2.2
 # RUN conda install -c dask-kubernetes -c conda-forge
 
-COPY src/ /pipe-analysis-navigator/
+COPY ./ /pipe-analysis-navigator/
 WORKDIR /pipe-analysis-navigator
 
 CMD panel serve dashboard_gen3.py --port 8080
