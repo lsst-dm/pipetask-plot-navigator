@@ -13,6 +13,7 @@ spec:
       labels:
         app: pipe-analysis-navigator
     spec:
+      terminationGracePeriodSeconds: 30
       containers:
       - name: pipe-analysis-navigator
         image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
