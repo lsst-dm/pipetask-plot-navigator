@@ -1,4 +1,4 @@
-name: pipe-analysis-navigator
+name: pipetask-plot-navigator
 
 on:
   push:
@@ -6,7 +6,7 @@ on:
       - 'main'
     paths:
     - 'src/**'
-    - '.github/workflows/build-pipe-analysis-navigator.yaml'
+    - '.github/workflows/build-pipetask-plot-navigator.yaml'
 
 jobs:
   docker:
@@ -46,7 +46,7 @@ jobs:
         with:
           context: src
           push: true
-          tags: lsstdm/pipe-analysis-navigator:latest
+          tags: lsstdm/pipetask-plot-navigator:latest
           # From https://github.com/docker/build-push-action/blob/master/docs/advanced/cache.md#github-cache
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,dest=/tmp/.buildx-cache-new
