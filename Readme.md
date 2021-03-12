@@ -1,4 +1,4 @@
-Pipe Analysis Navigator
+Pipetask Plot Navigator
 ============================
 
 Overview
