@@ -21,6 +21,8 @@ spec:
       - name: pgpass
         configMap:
           name: pgpass
+      - name: pgpass-secrets-dir
+        emptyDir: {}
       initContainers:
       - name: init
         image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
@@ -36,6 +38,8 @@ spec:
         - name: pgpass
           mountPath: "/root/.pgpass"
           subPath: ".pgpass"
+        - name: pgpass-secrets-dir
+          mountPath: "/var/run/secrets/pgpass"
       containers:
       - name: pipe-analysis-navigator
         image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
@@ -48,6 +52,8 @@ spec:
         - name: hsc-gen3repo
           mountPath: /project/hsc/gen3repo
           readOnly: true
+        - name: pgpass-secrets-dir
+          mountPath: "/var/run/secrets/pgpass"
         lifecycle:
           postStart:
             exec:
