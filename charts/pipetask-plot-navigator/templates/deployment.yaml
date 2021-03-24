@@ -18,6 +18,9 @@ spec:
       - name: hsc-gen3repo
         persistentVolumeClaim:
           claimName: hsc-gen3repo-pvc
+      - name: pgpass
+        configMap:
+          name: pgpass
       containers:
       - name: pipe-analysis-navigator
         image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
@@ -30,3 +33,21 @@ spec:
         - name: hsc-gen3repo
           mountPath: /project/hsc/gen3repo
           readOnly: true
+        - name: pgpass
+          mountPath: /home/worker/.pgpass
+          subPath: .pgpass
+        lifecycle:
+          postStart:
+            exec:
+              command:
+                - /bin/bash
+                - -c
+                - chmod 600 /home/worker/.pgpass
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: pgpass
+data:
+  .pgpass: |
+    lsst-pg-prod1.ncsa.illinois.edu:5432:lsstdb1:svcplotnavigator:
