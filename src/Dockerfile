@@ -15,6 +15,7 @@ WORKDIR /
 
 RUN conda install -c holoviz panel=0.10.2 
 RUN conda install bokeh=2.2.2
+RUN conda install psycopg2
 # RUN conda install -c dask-kubernetes -c conda-forge
 
 RUN useradd --create-home --shell /bin/bash worker --uid 1000
