@@ -101,8 +101,9 @@ def update_butler(event):
         collection_select.value = collections[0]
 
         debug_text.value = f"Successfully loaded butler from {config}."
-    except:
+    except Exception as e:
         debug_text.value = f"Failed to load Butler from {config}"
+        debug_text.value += f"\n{str(e)}"
 #         collection_select.value = ""        
 
 update_butler(None)
