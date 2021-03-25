@@ -18,6 +18,9 @@ spec:
       - name: hsc-gen3repo
         persistentVolumeClaim:
           claimName: hsc-gen3repo-pvc
+      - name: repo
+        persistentVolumeClaim:
+          claimName: repo-pvc
       - name: pgpass
         configMap:
           name: pgpass
@@ -51,6 +54,9 @@ spec:
         volumeMounts:
         - name: hsc-gen3repo
           mountPath: /project/hsc/gen3repo
+          readOnly: true
+        - name: repo
+          mountPath: /repo
           readOnly: true
         - name: pgpass-secrets-dir
           mountPath: "/var/run/secrets/pgpass"

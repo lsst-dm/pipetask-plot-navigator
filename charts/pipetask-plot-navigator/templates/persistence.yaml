@@ -27,3 +27,32 @@ spec:
   resources:
     requests:
       storage: 1Gi
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: repo-pv
+spec:
+  storageClassName: nfs-condo
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Retain
+  nfs:
+    path: /user/repo
+    server: radiant-nfs.ncsa.illinois.edu
+    readOnly: true
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: repo-pvc
+spec:
+  volumeName: repo-pv
+  storageClassName: nfs-condo
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 1Gi
