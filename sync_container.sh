@@ -47,6 +47,8 @@ tar cf - "${SOURCE_DIR}" | \
     tar --overwrite -xf - --strip-components="${STRIP_NUM}" -C "${TARGET_DIR}"
 # Compare the remote .codesync file contents with the expected value
 LASTSYNC="$(kubectl exec -it -n "${NAMESPACE}" "${POD_ID}" -- cat "${TARGET_DIR}/.codesync" | tr -d '\n' | tr -d '\r')"
+# Clean up temp files
+rm -f "${SOURCE_DIR}/.codesync"
 if [[ "${LASTSYNC}" == "${TIMESTAMP}" ]]; then
   echo "Sync successful."
   exit 0
@@ -54,6 +56,3 @@ else
   echo "Sync failed."
   exit 1
 fi
-
-# Clean up temp files
-rm -f "${SOURCE_DIR}/.codesync"
