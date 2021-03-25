@@ -3,6 +3,20 @@ Dashboard for pipetask-plot-navigator
 
 
 """
+import os
+import logging
+
+# Configure logging
+log = logging.getLogger(__name__)
+handler = logging.StreamHandler()
+formatter = logging.Formatter('%(asctime)s [%(name)-12s] %(levelname)-8s %(message)s')
+handler.setFormatter(formatter)
+log.addHandler(handler)
+try:
+    log.setLevel(os.environ['LOG_LEVEL'].upper())
+except:
+    log.setLevel('DEBUG')
+
 from pathlib import Path
 import re
 import panel as pn
@@ -52,7 +66,7 @@ def get_tracts(refs):
     return tracts
 
 
-root_entry = pn.widgets.TextInput(name="Repo root dir (e.g. /project/hsc/gen3repo)", value=".")  # /project/hsc/gen3repo
+root_entry = pn.widgets.TextInput(name="Repo root directory", value="/repo")
 repo_select = pn.widgets.Select(
     name="Repository",
     options=[p for p in Path(root_entry.value).glob("*") if p.joinpath("butler.yaml").exists()],
@@ -82,8 +96,13 @@ plots = pn.GridBox(["Plots will show up here when selected."], ncols=2)
 plots2 = pn.GridBox([], ncols=2)
 
 def update_repo_root(event):
-    repo_select.options = [p for p in Path(root_entry.value).glob("*") if p.joinpath("butler.yaml").exists()]
-    update_butler(None)
+    try:
+        log.debug(f'Files in root directory: {[p for p in Path(root_entry.value).glob("*")]}')
+        repo_select.options = [p for p in Path(root_entry.value).glob("*") if p.joinpath("butler.yaml").exists()]
+        log.debug(f'repo_select.options: {repo_select.options}')
+        update_butler(None)
+    except Exception as e:
+        log.error(f'{str(e)}')
     
 root_entry.param.watch(update_repo_root, 'value')
 
@@ -93,7 +112,10 @@ def update_butler(event):
     global registry
 
     try:
+        log.debug(f'Repo root directory: {root_entry.value}')
+        log.debug(f'Selected repo: {repo_select.value}')
         config = repo_select.value.joinpath("butler.yaml")
+        log.debug(f'Butler config: {config}')
         butler = dafButler.Butler(config=str(config))
         registry = butler.registry
         collections = list(registry.queryCollections())
@@ -102,9 +124,8 @@ def update_butler(event):
 
         debug_text.value = f"Successfully loaded butler from {config}."
     except Exception as e:
-        debug_text.value = f"Failed to load Butler from {config}"
-        debug_text.value += f"\n{str(e)}"
-#         collection_select.value = ""        
+        debug_text.value = f"Failed to load Butler: {str(e)}"
+        log.error(f'{str(e)}')
 
 update_butler(None)
 
