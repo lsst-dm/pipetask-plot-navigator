@@ -50,7 +50,7 @@ spec:
         command:
           - /bin/bash
           - -c 
-          - panel serve dashboard_gen3.py --port {{ .Values.port | default 8080 }} --prefix {{ .Values.basePath }} --allow-websocket-origin {{ .Values.hostname }}
+          - panel serve dashboard_gen3.py --port {{ .Values.port | default 8080 }} --prefix {{ .Values.basePath }} --allow-websocket-origin {{ .Values.hostname }} --dev
         volumeMounts:
         - name: hsc-gen3repo
           mountPath: /project/hsc/gen3repo
