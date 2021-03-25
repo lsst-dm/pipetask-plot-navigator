@@ -22,7 +22,7 @@ RUN useradd --create-home --shell /bin/bash worker --uid 1000
 USER worker
 WORKDIR /home/worker/
 
-COPY --chown=worker:worker ./ pipe-analysis-navigator/
-WORKDIR /home/worker/pipe-analysis-navigator
+COPY --chown=worker:worker ./ app/
+WORKDIR /home/worker/app
 
 CMD panel serve dashboard_gen3.py --port 8080
