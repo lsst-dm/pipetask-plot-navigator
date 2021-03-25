@@ -2,16 +2,16 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: pipe-analysis-navigator
+  name: pipetask-plot-navigator
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: pipe-analysis-navigator
+      app: pipetask-plot-navigator
   template:
     metadata:
       labels:
-        app: pipe-analysis-navigator
+        app: pipetask-plot-navigator
     spec:
       terminationGracePeriodSeconds: 30
       volumes:
@@ -44,7 +44,7 @@ spec:
         - name: pgpass-secrets-dir
           mountPath: "/var/run/secrets/pgpass"
       containers:
-      - name: pipe-analysis-navigator
+      - name: pipetask-plot-navigator
         image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
         imagePullPolicy: Always
         command:

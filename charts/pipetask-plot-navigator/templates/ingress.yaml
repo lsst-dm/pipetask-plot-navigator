@@ -2,7 +2,7 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: pipe-analysis-navigator
+  name: pipetask-plot-navigator
 spec:
   rules:
   - host: {{ .Values.hostname }}
@@ -12,6 +12,6 @@ spec:
         pathType: Prefix
         backend:
           service:
-            name: pipe-analysis-navigator
+            name: pipetask-plot-navigator
             port: 
               number: 80

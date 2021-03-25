@@ -2,10 +2,10 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: pipe-analysis-navigator
+  name: pipetask-plot-navigator
 spec:
   selector:
-    app: pipe-analysis-navigator
+    app: pipetask-plot-navigator
   ports:
   - port: 80
     protocol: TCP
