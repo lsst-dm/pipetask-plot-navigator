@@ -22,8 +22,8 @@ spec:
         persistentVolumeClaim:
           claimName: repo-pvc
       - name: pgpass
-        configMap:
-          name: pgpass
+        secret:
+          secretName: pgpass
       - name: pgpass-secrets-dir
         emptyDir: {}
       initContainers:
@@ -71,11 +71,3 @@ spec:
                   rm /var/run/secrets/pgpass/.pgpass && \
                   chown worker:worker /home/worker/.pgpass && \
                   chmod go-rwx /home/worker/.pgpass
----
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: pgpass
-data:
-  .pgpass: |
-    lsst-pg-prod1.ncsa.illinois.edu:5432:lsstdb1:svcplotnavigator:
