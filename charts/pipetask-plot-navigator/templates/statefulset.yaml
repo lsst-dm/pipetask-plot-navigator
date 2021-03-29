@@ -1,0 +1,23 @@
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: debugger
+spec:
+  selector:
+    matchLabels:
+      app: debugger
+  serviceName: "debugger"
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: debugger
+    spec:
+      containers:
+      - name: debugger
+        image: postgres:latest
+        command:
+        - /bin/bash
+        - -c
+        - sleep 1000d
