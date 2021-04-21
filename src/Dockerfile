@@ -10,6 +10,7 @@ WORKDIR /lsst-sphgeom
 RUN pip install .
 RUN git clone https://github.com/lsst/daf_butler /lsst-daf_butler
 WORKDIR /lsst-daf_butler
+RUN pip install -r requirements.txt  # this shouldn't be necessary; putting it in to update cache.
 RUN pip install .
 WORKDIR /
 
