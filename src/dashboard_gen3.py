@@ -66,7 +66,7 @@ def get_tracts(refs):
     return tracts
 
 
-root_entry = pn.widgets.TextInput(name="Repo root directory", value="/repo")
+root_entry = pn.widgets.TextInput(name="Repo root directory", value="/project/hsc/gen3repo")
 repo_select = pn.widgets.Select(
     name="Repository",
     options=[p for p in Path(root_entry.value).glob("*") if p.joinpath("butler.yaml").exists()],
