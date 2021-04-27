@@ -36,11 +36,10 @@ spec:
         command:
         - /bin/bash
         - -c
-        - cp /root/.pgpass /var/run/secrets/pgpass/.pgpass && chmod a+rw /var/run/secrets/pgpass/.pgpass
+        - cp /root/.pgpass /var/run/secrets/pgpass/.pgpass && chmod a+rw /var/run/secrets/pgpass/.pgpass && cp /root/db-auth.yaml /var/run/secrets/pgpass/db-auth.yaml && chmod a+rw /var/run/secrets/pgpass/db-auth.yaml
         volumeMounts:
         - name: pgpass
-          mountPath: "/root/.pgpass"
-          subPath: ".pgpass"
+          mountPath: "/root"
         - name: pgpass-secrets-dir
           mountPath: "/var/run/secrets/pgpass"
       containers:
@@ -70,4 +69,10 @@ spec:
                   cp /var/run/secrets/pgpass/.pgpass /home/worker/.pgpass && \
                   rm /var/run/secrets/pgpass/.pgpass && \
                   chown worker:worker /home/worker/.pgpass && \
-                  chmod go-rwx /home/worker/.pgpass
+                  chmod go-rwx /home/worker/.pgpass && \
+                  mkdir /home/worker/.lsst && \
+                  cp /var/run/secrets/pgpass/db-auth.yaml /home/worker/.lsst/db-auth.yaml && \
+                  rm /var/run/secrets/pgpass/db-auth.yaml && \
+                  chown worker:worker /home/worker/.lsst/db-auth.yaml && \
+                  chmod go-rwx /home/worker/.lsst/db-auth.yaml
+
