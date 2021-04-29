@@ -98,7 +98,14 @@ plots2 = pn.GridBox([], ncols=2)
 def update_repo_root(event):
     try:
         log.debug(f'Files in root directory: {[p for p in Path(root_entry.value).glob("*")]}')
-        repo_select.options = [p for p in Path(root_entry.value).glob("*") if p.joinpath("butler.yaml").exists()]
+        repo_options = []
+        for p in Path(root_entry.value).glob("*"):
+            try:
+                if p.joinpath("butler.yaml").exists():
+                    repo_options.append(p)
+            except Exception as e:
+                pass
+        repo_select.options = repo_options
         log.debug(f'repo_select.options: {repo_select.options}')
         update_butler(None)
     except Exception as e:
