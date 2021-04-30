@@ -1,0 +1,26 @@
+
+#sidebar {
+    flex: 0 0 25%;
+    max-width: 25%;
+}
+
+#sidebar.active {
+    margin-left: -25%;
+}
+
+
+.header_link {
+    color: white;
+}
+
+.header_selected {
+    background: #267ab7;
+    padding: 5px;
+    border-radius: 3px;
+
+}
+
+.title {
+    color: #058b8c;
+    font-size: 1.7em;
+}

@@ -22,8 +22,6 @@ from pathlib import Path
 import re
 import panel as pn
 
-pn.extension()
-
 import lsst.daf.butler as dafButler
 
 try:
@@ -44,6 +42,7 @@ collections2 = []
 
 plot_paths = {}
 plot_paths2 = {}
+
 
 pn.extension()
 
@@ -256,20 +255,33 @@ def refresh(event):
 
 refresh_button.on_click(refresh)
 
-gspec = pn.GridSpec(sizing_mode="stretch_height", max_height=800)
+
+bootstrap = pn.template.BootstrapTemplate(title="Rubin Plot Navigator")
 
 repo_collection_tabs = pn.Tabs(('Collection 1', pn.Column(collection_select)),
                                ('Collection 2', pn.Column(collection2_select)))
 
-gspec[0:2, 0:2] = repo_collection_tabs
-gspec[2, 0:2] = refresh_button
-gspec[3, 0:2] = skymap_select
-gspec[4, 0:2] = tract_select
-gspec[5, 0:2] = plot_filter
-gspec[6:12, 0:2] = plot_select
-gspec[0, 2:4] = debug_text
-gspec[1, 2] = width_entry
-gspec[1, 3] = ncols_entry
-gspec[2:, 2:4] = pn.Tabs(('collection 1', plots), ('collection 2', plots2))
 
-gspec.servable()
+bootstrap.sidebar.append(repo_collection_tabs)
+bootstrap.sidebar.append(refresh_button)
+bootstrap.sidebar.append(skymap_select)
+bootstrap.sidebar.append(tract_select)
+bootstrap.sidebar.append(plot_filter)
+bootstrap.sidebar.append(plot_select)
+
+bootstrap.sidebar.append(width_entry)
+bootstrap.sidebar.append(ncols_entry)
+
+bootstrap.main.append(debug_text)
+bootstrap.main.append(pn.Tabs(('collection 1', plots), ('collection 2', plots2)))
+
+
+with open("bootstrap_override.css") as f:
+    bootstrap.config.raw_css.append(f.read())
+
+bootstrap.header_background = "#1f2121"
+bootstrap.header_color = "#058b8c"
+
+
+bootstrap.servable()
+
