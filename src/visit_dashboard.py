@@ -43,7 +43,8 @@ panel.state.add_periodic_callback(poll_next_image, period=1000, start=True)
 update_image()
 
 
-bootstrap = panel.template.BootstrapTemplate(title="Rubin Plot Navigator")
+bootstrap = panel.template.BootstrapTemplate(title="Rubin Plot Navigator",
+                                             favicon="/assets/rubin-favicon-transparent-32px.png")
 
 bootstrap.sidebar.append(counter_widget)
 bootstrap.main.append(plot_pane)
