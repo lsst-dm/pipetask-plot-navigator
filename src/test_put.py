@@ -21,10 +21,14 @@ def make_plot(plot_n):
 
 
 butler = dafButler.Butler(config="test_repo/butler.yaml", run="test_run")
-#butler.registry.registerCollection("test_run", type=dafButler.CollectionType.RUN)
-#butler.registry.insertDimensionData("visit_system", {"instrument": "HSC",
-#                                                     "id": 1,
-#                                                     "name": "default"})
+butler.registry.registerCollection("test_run", type=dafButler.CollectionType.RUN)
+try:
+    butler.registry.insertDimensionData("visit_system", {"instrument": "HSC",
+                                                         "id": 1,
+                                                         "name": "default"})
+except Exception as e:
+    pass
+
 
 visit_plot_type = dafButler.DatasetType("visitPlot_demo", ("visit", "instrument"),
                                         storageClass="Plot",

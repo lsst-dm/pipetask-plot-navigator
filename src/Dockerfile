@@ -14,8 +14,8 @@ RUN pip install -r requirements.txt  # this shouldn't be necessary; putting it i
 RUN pip install .
 WORKDIR /
 
-RUN conda install -c holoviz panel=0.10.2 
-RUN conda install bokeh=2.2.2
+RUN conda install -c holoviz panel
+RUN conda install bokeh
 RUN conda install psycopg2
 # RUN conda install -c dask-kubernetes -c conda-forge
 
