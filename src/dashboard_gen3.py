@@ -256,7 +256,8 @@ def refresh(event):
 refresh_button.on_click(refresh)
 
 
-bootstrap = pn.template.BootstrapTemplate(title="Rubin Plot Navigator")
+bootstrap = pn.template.BootstrapTemplate(title="Rubin Plot Navigator",
+                                             favicon="/assets/rubin-favicon-transparent-32px.png")
 
 repo_collection_tabs = pn.Tabs(('Collection 1', pn.Column(collection_select)),
                                ('Collection 2', pn.Column(collection2_select)))
