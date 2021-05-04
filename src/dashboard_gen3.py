@@ -35,7 +35,6 @@ butler2 = None
 registry2 = None
 collections2 = []
 
-pattern = re.compile(".*Plot.*")
 plot_paths = {}
 plot_paths2 = {}
 
@@ -169,15 +168,29 @@ def update_butler2(event):
 # root_entry.param.watch(update_butler2, "value")
 repo2_select.param.watch(update_butler2, "value")
 
+def find_types(registry, storageClassName='Plot'):
+    types = []
+    for t in registry.queryDatasetTypes():
+        try:
+            if t.storageClass.name == storageClassName:
+                types.append(t)
+        except:
+            pass    
+
+    return types
+        
+def find_refs(collection, types):
+    return list(registry.queryDatasets(types, collections=collection, findFirst=True))
 
 def update_tract_select(event):
     global registry
     
+    types = find_types(registry)
     if registry is not None:
         try:
-            refs = list(registry.queryDatasets(pattern, collections=collection_select.value, findFirst=True))
+            refs = find_refs(collection_select.value, types)
             if registry2 is not None:
-                refs2 = list(registry2.queryDatasets(pattern, collections=collection2_select.value, findFirst=True))
+                refs2 = find_refs(collection2_select.value, types)
             else:
                 refs2 = refs
 
@@ -197,11 +210,13 @@ def update_plot_names(event):
     plot_names2 = []
     plot_refs = []
     plot_refs2 = []
+    types = find_types(registry)
+    
     for tract in tract_select.value:
         refs = [
             ref
             for ref in registry.queryDatasets(
-                pattern,
+                types,
                 collections=collection_select.value,
                 findFirst=True,
                 dataId={"skymap": "hsc_rings_v1", "tract": tract},
@@ -214,7 +229,7 @@ def update_plot_names(event):
             refs2 = [
                 ref
                 for ref in registry2.queryDatasets(
-                    pattern,
+                    types,
                     collections=collection2_select.value,
                     findFirst=True,
                     dataId={"skymap": "hsc_rings_v1", "tract": tract},
