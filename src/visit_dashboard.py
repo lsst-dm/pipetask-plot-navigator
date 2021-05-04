@@ -6,6 +6,8 @@ import os
 
 import lsst.daf.butler as dafButler
 
+from RubinTemplate import RubinTemplate
+
 panel.extension()
 
 displayed_visit = 1
@@ -27,6 +29,8 @@ def update_image():
     displayed_visit = counter_widget.value
 
 def poll_next_image():
+    if(autoadvance.value == False):
+        return
 
     next_visit = int(counter_widget.value) + 1
     try:
@@ -38,28 +42,20 @@ def poll_next_image():
         pass
 
 
+autoadvance = panel.widgets.Checkbox(name="Auto-advance", value=False)
 panel.state.add_periodic_callback(poll_next_image, period=1000, start=True)
 
 update_image()
 
 
-bootstrap = panel.template.BootstrapTemplate(title="Rubin Plot Navigator",
-                                             favicon="/assets/rubin-favicon-transparent-32px.png")
 
-bootstrap.sidebar.append(counter_widget)
-bootstrap.main.append(plot_pane)
+template = RubinTemplate()
 
-with open("bootstrap_override.css") as f:
-    bootstrap.config.raw_css.append(f.read())
+template.sidebar.append(counter_widget)
+template.sidebar.append(autoadvance)
+template.main.append(plot_pane)
 
-bootstrap.header_background = "#1f2121"
-bootstrap.header_color = "#058b8c"
-bootstrap.header.append(panel.pane.HTML("<a class=\"header_link\" href=\"/dashboard_gen3\">Tract-based plots</div>"))
-bootstrap.header.append(panel.pane.HTML("<div class=\"header_link header_selected\">Visit-based plots</div>"))
-
-
-bootstrap.servable()
-
+template.servable()
 
 
 
