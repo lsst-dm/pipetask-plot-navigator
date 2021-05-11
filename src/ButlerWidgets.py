@@ -30,8 +30,10 @@ class CollectionSelectWidget(panel.widgets.AutocompleteInput):
 
     def selector_updated(self):
         self.options = self.selector.get_collection_options()
-        if(len(self.options) > 0):
-            self.value = self.options[0]
+
+        # CTS 
+        #if(len(self.options) > 0):
+        #    self.value = self.options[0]
 
 
 class PlotFilterWidget(panel.widgets.TextInput):
@@ -43,6 +45,17 @@ class PlotFilterWidget(panel.widgets.TextInput):
 
     def filter_updated_event(self, event):
         self.selector.set_plot_filter(self.value)
+
+
+class VisitWidget(panel.widgets.TextInput):
+
+    def __init__(self, butler_selector, name="Visit number", **kwargs):
+        super().__init__(name=name, **kwargs)
+        self.selector = butler_selector
+        self.param.watch(self.visit_updated_event, "value")
+
+    def visit_updated_event(self, event):
+        self.selector.set_visit(int(self.value))
 
 
 class PlotSelectWidget(panel.widgets.MultiSelect):
