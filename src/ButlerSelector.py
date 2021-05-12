@@ -86,13 +86,16 @@ class ButlerDatasetSelector:
         for dataset_type in self.selected_plot_names:
             data_id = {"skymap": "hsc_rings_v1", "visit": self.visit,
                        "instrument": "HSC"}
-            ref = self.butler.registry.queryDatasets(dataset_type, dataId=data_id,
-                                                     collections=self.get_selected_collection(),
-                                                     findFirst=True)
-            #import pdb; pdb.set_trace()
-            refs.append(list(ref)[0])
-            #refs.append(dafButler.DatasetRef(dataset_type, data_id,
-            #                                 run=self.get_selected_collection()))
+            try:
+                ref = self.butler.registry.queryDatasets(dataset_type, dataId=data_id,
+                                                         collections=self.get_selected_collection(),
+                                                         findFirst=True)
+            except LookupError:
+                continue
+
+            ref_list = list(ref)
+            if(len(ref_list) > 0):
+                refs.append(ref_list[0])
 
         return refs
 

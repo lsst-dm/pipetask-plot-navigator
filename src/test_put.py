@@ -20,6 +20,12 @@ def make_plot(plot_n):
     # plt.savefig("plot_{:03d}".format(plot_n))
 
 
+if(len(sys.argv) > 2):
+    dataset_type_name = sys.argv[2]
+else:
+    dataset_type_name = "visitPlot_demo"
+print("Plot name ", dataset_type_name)
+
 butler = dafButler.Butler(config="test_repo/butler.yaml", run="test_run")
 butler.registry.registerCollection("test_run", type=dafButler.CollectionType.RUN)
 try:
@@ -30,7 +36,7 @@ except Exception as e:
     pass
 
 
-visit_plot_type = dafButler.DatasetType("visitPlot_demo", ("visit", "instrument"),
+visit_plot_type = dafButler.DatasetType(dataset_type_name, ("visit", "instrument"),
                                         storageClass="Plot",
                                         universe=butler.registry.dimensions)
 butler.registry.registerDatasetType(visit_plot_type)
@@ -42,14 +48,17 @@ if(len(sys.argv) < 2):
 visit = int(sys.argv[1])
 print(f"Visit {visit:d}")
 fig = make_plot(visit)
-butler.registry.insertDimensionData("visit", {"instrument": "HSC", "id": visit,
-                                              "name": f"VISIT_{visit:07d}",
-                                              "physical_filter": "HSC-R",
-                                              "visit_system": 1})
+try:
+    butler.registry.insertDimensionData("visit", {"instrument": "HSC", "id": visit,
+                                                  "name": f"VISIT_{visit:07d}",
+                                                  "physical_filter": "HSC-R",
+                                                  "visit_system": 1})
+except:
+    pass
 
 dataId = {"visit": visit, "instrument": "HSC"}
 # {band, instrument, physical_filter, exposure
-butler.put(fig, "visitPlot_demo", dataId)
+butler.put(fig, dataset_type_name, dataId)
 
 
 
