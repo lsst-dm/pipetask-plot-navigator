@@ -46,25 +46,12 @@ class ButlerDatasetSelector:
 
     def get_plot_name_options(self):
         plot_options = {}
-        pattern = re.compile(".*Plot.*")
 
         if(len(self.get_selected_collection()) == 0):
             return []
 
-        query = self.butler.registry.queryDatasets(
-            pattern,
-            collections=self.get_selected_collection(),
-            findFirst=True,
-            dataId={"skymap": "hsc_rings_v1"})
-        for ref in query:
-            if not re.search(self.plot_filter, ref.datasetType.name):
-                continue
-
-            display_string = f"{ref.datasetType.name}"
-            plot_options[display_string] = ref
-
         # Use glob-style expressions instead of regexes
-        # regex = fnmatch.translate(self.get_plot_filter())
+        # TODO: get the value from get_plot_filter()
         regex = fnmatch.translate("*Plot*")
         dataset_types = self.butler.registry.queryDatasetTypes(re.compile(regex))
 

@@ -31,10 +31,6 @@ class CollectionSelectWidget(panel.widgets.AutocompleteInput):
     def selector_updated(self):
         self.options = self.selector.get_collection_options()
 
-        # CTS 
-        #if(len(self.options) > 0):
-        #    self.value = self.options[0]
-
 
 class PlotFilterWidget(panel.widgets.TextInput):
 
