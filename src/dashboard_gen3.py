@@ -1,8 +1,3 @@
-"""
-Dashboard for pipetask-plot-navigator
-
-
-"""
 import os
 import logging
 
@@ -16,157 +11,18 @@ try:
     log.setLevel(os.environ['LOG_LEVEL'].upper())
 except:
     log.setLevel('DEBUG')
-
+    
 from pathlib import Path
 import re
+
 import panel as pn
+import param
+
+from lsst.daf.butler import Butler
 
 pn.extension()
 
-import lsst.daf.butler as dafButler
-
-config = None
-butler = None
-registry = None
-collections = []
-
-config2 = None
-butler2 = None
-registry2 = None
-collections2 = []
-
-plot_paths = {}
-plot_paths2 = {}
-
-pn.extension()
-
-def initialize():
-    global config, butler, registry, collections
-    global config2, butler2, registry2, collections2
-
-    global plot_paths, plot_paths2
-    
-    config = None
-    butler = None
-    registry = None
-    collections = []
-    
-    config2 = None
-    butler2 = None
-    registry2 = None
-    collections2 = []
-    
-    plot_paths = {}
-    plot_paths2 = {}
-    
-def get_tracts(refs):
-    tracts = list(set(r.dataId["tract"] for r in refs))
-    tracts.sort()
-    return tracts
-
-
-root_entry = pn.widgets.TextInput(name="Repo root directory", value="/project/hsc/gen3repo")
-repo_select = pn.widgets.Select(
-    name="Repository",
-    options=[p for p in Path(root_entry.value).glob("*") if p.joinpath("butler.yaml").exists()],
-    value=None,
-)
-collection_select = pn.widgets.AutocompleteInput(name="Collection", options=collections)
-repo2_select = pn.widgets.Select(
-    name="Repository 2",
-    options=['None'] + [p for p in Path(root_entry.value).glob("*") if p.joinpath("butler.yaml").exists()],
-    value=None,
-)
-collection2_select = pn.widgets.AutocompleteInput(name="Collection 2", options=collections2)
-
-tract_select = pn.widgets.MultiSelect(name="Tract", options=[])
-plot_filter = pn.widgets.TextInput(name="Plot name filter", value="")
-
-plot_select = pn.widgets.MultiSelect(name="Plots", options=[],)
-
-debug_text = pn.widgets.StaticText(value=f"config = {config}")
-
-width_entry = pn.widgets.IntInput(name="Plot width", start=300, end=1200, step=50, value=600)
-ncols_entry = pn.widgets.IntInput(name="n_cols", start=1, end=4, step=1, value=2)
-# width_slider = pn.widgets.IntSlider(name='Plot width', start=400, end=1200, step=50, value=600)
-# ncols_slider = pn.widgets.IntSlider(name='Number of columns', start=1, end=4, step=1, value=2)
-
-plots = pn.GridBox(["Plots will show up here when selected."], ncols=2)
-plots2 = pn.GridBox([], ncols=2)
-
-def update_repo_root(event):
-    try:
-        log.debug(f'Files in root directory: {[p for p in Path(root_entry.value).glob("*")]}')
-        repo_options = []
-        for p in Path(root_entry.value).glob("*"):
-            try:
-                if p.joinpath("butler.yaml").exists():
-                    repo_options.append(p)
-            except Exception as e:
-                pass
-        repo_select.options = repo_options
-        log.debug(f'repo_select.options: {repo_select.options}')
-        update_butler(None)
-    except Exception as e:
-        log.error(f'{str(e)}')
-    
-root_entry.param.watch(update_repo_root, 'value')
-
-def update_butler(event):
-    global config
-    global butler
-    global registry
-
-    try:
-        log.debug(f'Repo root directory: {root_entry.value}')
-        log.debug(f'Selected repo: {repo_select.value}')
-        config = repo_select.value.joinpath("butler.yaml")
-        log.debug(f'Butler config: {config}')
-        butler = dafButler.Butler(config=str(config))
-        registry = butler.registry
-        collections = list(registry.queryCollections())
-        collection_select.options = collections
-        collection_select.value = collections[0]
-
-        debug_text.value = f"Successfully loaded butler from {config}."
-    except Exception as e:
-        debug_text.value = f"Failed to load Butler: {str(e)}"
-        log.error(f'{str(e)}')
-
-update_butler(None)
-
-repo_select.param.watch(update_butler, "value")
-
-
-def update_butler2(event):
-    global config2
-    global butler2
-    global registry2
-
-    try:
-        if repo2_select.value == 'None':
-            config2 = None
-            butler2 = None
-            registry2 = None
-            collection2_select.options = []
-            
-            debug_text.value = f"butler2 set to None."
-        else:            
-            config2 = repo2_select.value.joinpath("butler.yaml")
-            butler2 = dafButler.Butler(config=str(config2))
-            registry2 = butler2.registry
-            collections2 = list(registry2.queryCollections())
-            collection2_select.options = collections2
-            collection2_select.value = collections2[0]
-
-            debug_text.value = f"Successfully loaded butler2 from {config}."
-    except:
-        debug_text.value = f"Failed to load butler2 from {config}"
-#         collection2_select.value = ""
-        raise
-
-# root_entry.param.watch(update_butler2, "value")
-repo2_select.param.watch(update_butler2, "value")
+default_repo = '/project/hsc/gen3repo/rc2w02_ssw03'
 
 def find_types(registry, storageClassName='Plot'):
     types = []
@@ -179,151 +35,187 @@ def find_types(registry, storageClassName='Plot'):
 
     return types
         
-def find_refs(collection, types):
+def find_refs(registry, collection, types):
     return list(registry.queryDatasets(types, collections=collection, findFirst=True))
 
-def update_tract_select(event):
-    global registry
-    
-    types = find_types(registry)
-    if registry is not None:
-        try:
-            refs = find_refs(collection_select.value, types)
-            if registry2 is not None:
-                refs2 = find_refs(collection2_select.value, types)
-            else:
-                refs2 = refs
+def get_tracts(refs):
+    tracts = list(set(r.dataId["tract"] for r in refs))
+    tracts.sort()
+    return tracts
 
-            tract_select.options = list(set(get_tracts(refs)).intersection(set(get_tracts(refs2))))
-            tract_select.value = []
-        except:
-            debug_text.value += f'; {event.new}'
-#             raise
+
+class PlotExplorer(param.Parameterized):
         
-collection_select.param.watch(update_tract_select, "value")
-collection2_select.param.watch(update_tract_select, "value")
+    repo1 = param.String(default=default_repo)
+    load1 = param.Action(lambda x: x.param.trigger('load1'), label='Load Butler 1')
+    collection1 = param.ObjectSelector(default='', objects=[])
 
-def update_plot_names(event):
-    global plot_paths, plot_paths2
+    repo2 = param.String(default=default_repo)
+    load2 = param.Action(lambda x: x.param.trigger('load2'), label='Load Butler 2')
+    collection2 = param.ObjectSelector(default='', objects=[])
+        
+    butler1 = param.ClassSelector(default=None, class_=Butler, precedence=-1)
+    butler2 = param.ClassSelector(default=None, class_=Butler, precedence=-1)
+        
+    tract = param.ListSelector(objects=[])
+    name_filter = param.String()
+    plot_select = param.ListSelector(objects=[])
+        
+    plot_width = param.Integer(600, bounds=(300, 1200))
+    ncols = param.Integer(2)
+        
+    debug = pn.widgets.StaticText(value=f"Status message.")
+        
+    plot_paths = param.Dict(precedence=-1)
+    plot_paths2 = param.Dict(precedence=-1)
+        
+    def _load_butler(self, repo_path):
+        log.debug(f'Loading butler repo from {repo_path}')
+        try:
+            butler = Butler(repo_path)
+            return butler
+        except Exception as e:
+            self.debug.value = f'Failed to load Butler: {str(e)}'
+            log.error(f'{str(e)}')
+        
+    @param.depends('load1', watch=True)
+    def _update_butler1(self):
+        self.butler1 = self._load_butler(self.repo1)
+        if self.butler1 is not None:
+            self.debug.value = f'Loaded Butler1 from {self.repo1}.'
+            collections = list(self.butler1.registry.queryCollections())
+            collections.sort()
+            self.param.collection1.objects = collections
 
-    plot_names = []
-    plot_names2 = []
-    plot_refs = []
-    plot_refs2 = []
-    types = find_types(registry)
-    
-    for tract in tract_select.value:
-        refs = [
-            ref
-            for ref in registry.queryDatasets(
-                types,
-                collections=collection_select.value,
-                findFirst=True,
-                dataId={"skymap": "hsc_rings_v1", "tract": tract},
-            )
-            if re.search(plot_filter.value, ref.datasetType.name)
-        ]
-        names = [f"{p.datasetType.name} ({tract})" for p in refs]
+    @param.depends('load2', watch=True)
+    def _update_butler2(self):
+        self.butler2 = self._load_butler(self.repo2)
+        if self.butler2 is not None:
+            self.debug.value = f'Loaded Butler2 from {self.repo2}.'
+            collections = list(self.butler2.registry.queryCollections())
+            collections.sort()
+            self.param.collection2.objects = collections
 
-        if registry2 is not None:
-            refs2 = [
+    @param.depends('collection1', 'collection2', watch=True)
+    def _update_tract_select(self):
+        registry = self.butler1.registry
+        
+        types = find_types(registry)
+
+        if registry is not None:
+            try:
+                refs = find_refs(registry, self.collection1, types)
+                if self.collection2:
+                    refs2 = find_refs(registry, self.collection2, types)
+                else:
+                    refs2 = refs
+                                
+                self.param.tract.objects = list(set(get_tracts(refs)).intersection(set(get_tracts(refs2))))
+                self.tract = []
+            except:
+                raise        
+        
+    @param.depends('tract', 'collection1', 'collection2', 'name_filter', watch=True)
+    def _update_plot_names(self):
+        
+        registry = self.butler1.registry
+        registry2 = self.butler2.registry if self.butler2 is not None else None
+        
+        plot_names = []
+        plot_names2 = []
+        plot_refs = []
+        plot_refs2 = []
+        types = find_types(registry)
+        
+        for tract in self.tract:
+            refs = [
                 ref
-                for ref in registry2.queryDatasets(
+                for ref in registry.queryDatasets(
                     types,
-                    collections=collection2_select.value,
+                    collections=self.collection1,
                     findFirst=True,
                     dataId={"skymap": "hsc_rings_v1", "tract": tract},
                 )
-                if re.search(plot_filter.value, ref.datasetType.name)
+                if re.search(self.name_filter, ref.datasetType.name)
             ]
-            names2 = [f"{p.datasetType.name} ({tract})" for p in refs2]
-        else:
-            refs2 = refs
-            names2 = names
-        
-        plot_refs.extend(refs)
-        plot_refs2.extend(refs2)
-        plot_names.extend(names)
-        plot_names2.extend(names2)
+            names = [f"{p.datasetType.name} ({tract})" for p in refs]
+            if registry2 is not None:
+                refs2 = [
+                    ref
+                    for ref in registry2.queryDatasets(
+                        types,
+                        collections=self.collection2,
+                        findFirst=True,
+                        dataId={"skymap": "hsc_rings_v1", "tract": tract},
+                    )
+                    if re.search(self.name_filter, ref.datasetType.name)
+                ]
+                names2 = [f"{p.datasetType.name} ({tract})" for p in refs2]
+            else:
+                refs2 = refs
+                names2 = names
 
-    plot_paths = {
-        name: butler.getURI(ref, collections=collection_select.value).path
-        for name, ref in zip(plot_names, plot_refs)
-    }
-    
-    if registry2 is not None:
-        plot_paths2 = {
-            name: butler2.getURI(ref, collections=collection2_select.value).path
-            for name, ref in zip(plot_names2, plot_refs2)
+            plot_refs.extend(refs)
+            plot_refs2.extend(refs2)
+            plot_names.extend(names)
+            plot_names2.extend(names2)
+
+        self.plot_paths = {
+            name: self.butler1.getURI(ref, collections=self.collection1).path
+            for name, ref in zip(plot_names, plot_refs)
         }
 
-#     debug_text.value = str(plot_names) + '\n' + str(plot_names2)
+        if registry2 is not None:
+            self.plot_paths2 = {
+                name: self.butler2.getURI(ref, collections=self.collection2).path
+                for name, ref in zip(plot_names2, plot_refs2)
+            }
 
-    plot_names = list(set(plot_names).intersection(plot_names2))
-    plot_names.sort()
-    plot_select.options = plot_names
+        plot_names = list(set(plot_names).intersection(plot_names2))
+        plot_names.sort()
         
-collection_select.param.watch(update_plot_names, "value")
-repo2_select.param.watch(update_plot_names, 'value')
-collection2_select.param.watch(update_plot_names, "value")
-plot_filter.param.watch(update_plot_names, "value")
-tract_select.param.watch(update_plot_names, "value")
+        self.param.plot_select.objects = plot_names     
+        
+    @param.depends('plot_select', 'butler1', 'butler2', 'collection1', 'collection2')
+    def plots(self):
+        if self.plot_select is not None:
+            plot_list = [pn.pane.PNG(self.plot_paths[name], width=self.plot_width) 
+                         for name in self.plot_select]
+            plot_gbox = pn.GridBox(*plot_list, ncols=self.ncols)
+                            
+            if self.plot_paths2:
+                plot_list2 = [pn.pane.PNG(self.plot_paths2[name], width=self.plot_width) 
+                             for name in self.plot_select]
+                plot_gbox2 = pn.GridBox(*plot_list2, ncols=self.ncols)
+            else:
+                plot_gbox2 = pn.GridBox([])
 
+            return pn.Tabs(('collection 1', plot_gbox), ('collection 2', plot_gbox2))
+        
+    def panel(self):
+        gspec = pn.GridSpec(sizing_mode="stretch_height", max_height=800)
+        
+        repo_collection_tabs = pn.Tabs(('Collection 1', pn.Column(self.param.repo1, self.param.load1, self.param.collection1)), 
+                                       ('Collection 2', pn.Column(self.param.repo2, self.param.load2, self.param.collection2)))
 
-def get_png(name):
-    return pn.pane.PNG(plot_paths[name], width=width_entry.value)
-
-def get_png2(name):
-    return pn.pane.PNG(plot_paths2[name], width=width_entry.value)
-
-def update_plots(event):
-#     debug_text.value = [plot_paths[name] for name in event.new]    
-    plots.objects = [get_png(name) for name in event.new]
-    if registry2 is not None:
-        plots2.objects = [get_png2(name) for name in event.new]
-            
-plot_select.param.watch(update_plots, "value")
-
-def update_plot_layout(event):
+        
+        gspec[0:3, 0:2] = repo_collection_tabs
+        
+        gspec[3, 0:2] = self.param.tract
+        gspec[4, 0:2] = self.param.name_filter
+        gspec[5:12, 0:2] = self.param.plot_select
+        
+        gspec[0, 2:4] = self.debug
+        gspec[1, 2] = pn.Param(self.param.plot_width, 
+                               widgets={'plot_width': 
+                                        {'widget_type': pn.widgets.IntInput,
+                                        'start': 300,
+                                        'end': 1200,
+                                        'step': 50}})
+        gspec[1, 3] = self.param.ncols
+        gspec[2:, 2:4] = self.plots
+        
+        return gspec
     
-#     debug_text.value = str(f'new number is {event.new}')        
-    for plot in plots:
-        plot.width = width_entry.value
-    for plot in plots2:
-        plot.width = width_entry.value
-    
-    plots.ncols = ncols_entry.value
-    plots2.ncols = ncols_entry.value    
-        
-width_entry.param.watch(update_plot_layout, "value")
-ncols_entry.param.watch(update_plot_layout, "value")
-
-refresh_button = pn.widgets.Button(name='Reload', button_type='default')
-
-def refresh(event):
-    update_butler(event)
-    update_tract_select(event)
-    update_plot_names(event)
-    plots.objects = [get_png(name) for name in plot_select.value]
-    if registry2 is not None:
-        plots2.objects = [get_png2(name) for name in plot_select.value]
-        
-refresh_button.on_click(refresh)
-
-gspec = pn.GridSpec(sizing_mode="stretch_height", max_height=800)
-
-repo_collection_tabs = pn.Tabs(('Collection 1', pn.Column(repo_select, collection_select)), 
-                               ('Collection 2', pn.Column(repo2_select, collection2_select)))
-
-gspec[0, 0:2] = root_entry
-gspec[1:3, 0:2] = repo_collection_tabs
-gspec[3, 0:2] = refresh_button
-gspec[4, 0:2] = tract_select
-gspec[5, 0:2] = plot_filter
-gspec[6:12, 0:2] = plot_select
-gspec[0, 2:4] = debug_text
-gspec[1, 2] = width_entry
-gspec[1, 3] = ncols_entry
-gspec[2:, 2:4] = pn.Tabs(('collection 1', plots), ('collection 2', plots2))
-
-gspec.servable()
+explorer = PlotExplorer()
+pn.Column(explorer.panel).servable()
