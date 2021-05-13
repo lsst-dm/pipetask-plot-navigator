@@ -1,4 +1,4 @@
-name: pipetask-plot-navigator
+name: pipetask-plot-navigator-dev
 
 on:
   push:
