@@ -2,16 +2,16 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: pipetask-plot-navigator
+  name: {{ .Release.Name }}-pipetask-plot-navigator
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: pipetask-plot-navigator
+      app: {{ .Release.Name }}-pipetask-plot-navigator
   template:
     metadata:
       labels:
-        app: pipetask-plot-navigator
+        app: {{ .Release.Name }}-pipetask-plot-navigator
     spec:
       terminationGracePeriodSeconds: 30
       volumes:
