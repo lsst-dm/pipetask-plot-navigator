@@ -12,6 +12,6 @@ spec:
         pathType: Prefix
         backend:
           service:
-            name: pipetask-plot-navigator
+            name: {{ .Release.Name }}-pipetask-plot-navigator
             port: 
               number: 80
