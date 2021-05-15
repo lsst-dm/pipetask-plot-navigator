@@ -17,10 +17,10 @@ spec:
       volumes:
       - name: hsc-gen3repo
         persistentVolumeClaim:
-          claimName: hsc-gen3repo-pvc
+          claimName: {{ .Release.Name }}-hsc-gen3repo-pvc
       - name: repo
         persistentVolumeClaim:
-          claimName: repo-pvc
+          claimName: {{ .Release.Name }}-repo-pvc
       - name: pgpass
         secret:
           secretName: pgpass
