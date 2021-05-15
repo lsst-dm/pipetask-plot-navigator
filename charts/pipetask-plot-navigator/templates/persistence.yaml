@@ -2,7 +2,7 @@
 apiVersion: v1
 kind: PersistentVolume
 metadata:
-  name: hsc-gen3repo-pv
+  name: {{ .Release.Name }}-hsc-gen3repo-pv
 spec:
   storageClassName: nfs-condo
   capacity:
@@ -18,9 +18,9 @@ spec:
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: hsc-gen3repo-pvc
+  name: {{ .Release.Name }}-hsc-gen3repo-pvc
 spec:
-  volumeName: hsc-gen3repo-pv
+  volumeName: {{ .Release.Name }}-hsc-gen3repo-pv
   storageClassName: nfs-condo
   accessModes:
     - ReadWriteMany
@@ -31,7 +31,7 @@ spec:
 apiVersion: v1
 kind: PersistentVolume
 metadata:
-  name: repo-pv
+  name: {{ .Release.Name }}-repo-pv
 spec:
   storageClassName: nfs-condo
   capacity:
@@ -47,9 +47,9 @@ spec:
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: repo-pvc
+  name: {{ .Release.Name }}-repo-pvc
 spec:
-  volumeName: repo-pv
+  volumeName: {{ .Release.Name }}-repo-pv
   storageClassName: nfs-condo
   accessModes:
     - ReadWriteMany
