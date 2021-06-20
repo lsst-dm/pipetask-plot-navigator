@@ -134,7 +134,7 @@ class PlotExplorer(param.Parameterized):
                     types,
                     collections=self.collection1,
                     findFirst=True,
-                    dataId={"skymap": "*", "tract": tract},
+                    dataId={"tract": tract},
                 )
                 if re.search(self.name_filter, ref.datasetType.name)
             ]
@@ -146,7 +146,7 @@ class PlotExplorer(param.Parameterized):
                         types,
                         collections=self.collection2,
                         findFirst=True,
-                        dataId={"skymap": "*", "tract": tract},
+                        dataId={"tract": tract},
                     )
                     if re.search(self.name_filter, ref.datasetType.name)
                 ]
