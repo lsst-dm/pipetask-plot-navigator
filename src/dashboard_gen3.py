@@ -19,7 +19,6 @@ import panel as pn
 import param
 
 from lsst.daf.butler import Butler
-from lsst.skymap import BaseSkyMap
 
 pn.extension()
 
