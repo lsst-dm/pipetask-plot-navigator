@@ -1,6 +1,6 @@
 FROM continuumio/miniconda3:4.9.2
 
-RUN apt-get update && \
+RUN apt-get --allow-releaseinfo-change update && \
     apt-get install -y \
         build-essential \
     && rm -rf /var/lib/apt/lists/* 
