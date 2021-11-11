@@ -27,9 +27,9 @@ pn.extension()
 import lsst.daf.butler as dafButler
 
 try:
-    repo_config_string = os.environ['BUTLER_REPO']
+    repo_config_string = os.environ['BUTLER_URI']
 except KeyError:
-    print("Must set environment variable BUTLER_REPO with butler config path.")
+    print("Must set environment variable BUTLER_URI with butler config path.")
     sys.exit(0)
 
 config = None
@@ -75,13 +75,13 @@ def get_tracts(refs):
 collection_select = pn.widgets.AutocompleteInput(name="Collection", options=collections)
 collection2_select = pn.widgets.AutocompleteInput(name="Collection 2", options=collections2)
 
-skymap_select = pn.widgets.MultiChoice(name="Skymap", options=["DC2", "hsc_rings_v1"])
+skymap_select = pn.widgets.Select(name="Skymap", options=["DC2", "hsc_rings_v1"])
 tract_select = pn.widgets.MultiSelect(name="Tract", options=[])
 plot_filter = pn.widgets.TextInput(name="Plot name filter", value="")
 
 plot_select = pn.widgets.MultiSelect(name="Plots", options=[],)
 
-debug_text = pn.widgets.StaticText(value=f"config = {config}")
+debug_text = pn.widgets.StaticText(value="")
 
 width_entry = pn.widgets.IntInput(name="Plot width", start=300, end=1200, step=50, value=600)
 ncols_entry = pn.widgets.IntInput(name="n_cols", start=1, end=4, step=1, value=2)
@@ -103,39 +103,16 @@ def update_butler(event):
         collection_select.options = collections
         collection_select.value = collections[0]
 
-        debug_text.value = f"Successfully loaded butler from {config}."
+        collection2_select.options = collections
+        collection2_select.value = collections[0]
+
+        debug_text.value = "Successfully loaded butler."
     except Exception as e:
         debug_text.value = f"Failed to load Butler: {str(e)}"
         log.error(f'{str(e)}')
 
 update_butler(None)
 
-def update_butler2(event):
-    global butler2
-    global registry2
-
-    try:
-        if repo2_select.value == 'None':
-            butler2 = None
-            registry2 = None
-            collection2_select.options = []
-
-            debug_text.value = f"butler2 set to None."
-        else:
-            butler2 = dafButler.Butler(config=repo_config_string)
-            registry2 = butler2.registry
-            collections2 = list(registry2.queryCollections())
-            collection2_select.options = collections2
-            collection2_select.value = collections2[0]
-
-            debug_text.value = f"Successfully loaded butler2."
-    except:
-        debug_text.value = f"Failed to load butler2."
-#         collection2_select.value = ""
-        raise
-
-# root_entry.param.watch(update_butler2, "value")
-repo2_select.param.watch(update_butler2, "value")
 
 def find_types(registry, storageClassName='Plot'):
     types = []
@@ -167,10 +144,11 @@ def update_tract_select(event):
             tract_select.value = []
         except:
             debug_text.value += f'; {event.new}'
-#             raise
+
         
 collection_select.param.watch(update_tract_select, "value")
 collection2_select.param.watch(update_tract_select, "value")
+skymap_select.param.watch(update_tract_select, "value")
 
 def update_plot_names(event):
     global plot_paths, plot_paths2
@@ -233,7 +211,6 @@ def update_plot_names(event):
     plot_select.options = plot_names
         
 collection_select.param.watch(update_plot_names, "value")
-repo2_select.param.watch(update_plot_names, 'value')
 collection2_select.param.watch(update_plot_names, "value")
 plot_filter.param.watch(update_plot_names, "value")
 tract_select.param.watch(update_plot_names, "value")
@@ -270,13 +247,13 @@ ncols_entry.param.watch(update_plot_layout, "value")
 refresh_button = pn.widgets.Button(name='Reload', button_type='default')
 
 def refresh(event):
-    update_butler(event)
+    # update_butler(event)
     update_tract_select(event)
     update_plot_names(event)
     plots.objects = [get_png(name) for name in plot_select.value]
     if registry2 is not None:
         plots2.objects = [get_png2(name) for name in plot_select.value]
-        
+
 refresh_button.on_click(refresh)
 
 gspec = pn.GridSpec(sizing_mode="stretch_height", max_height=800)
@@ -284,13 +261,12 @@ gspec = pn.GridSpec(sizing_mode="stretch_height", max_height=800)
 repo_collection_tabs = pn.Tabs(('Collection 1', pn.Column(collection_select)),
                                ('Collection 2', pn.Column(collection2_select)))
 
-gspec[0, 0:2] = root_entry
-gspec[1:3, 0:2] = repo_collection_tabs
-gspec[3, 0:2] = refresh_button
-gspec[4, 0:2] = skymap_select
-gspec[5, 0:2] = tract_select
-gspec[6, 0:2] = plot_filter
-gspec[7:12, 0:2] = plot_select
+gspec[0:2, 0:2] = repo_collection_tabs
+gspec[2, 0:2] = refresh_button
+gspec[3, 0:2] = skymap_select
+gspec[4, 0:2] = tract_select
+gspec[5, 0:2] = plot_filter
+gspec[6:12, 0:2] = plot_select
 gspec[0, 2:4] = debug_text
 gspec[1, 2] = width_entry
 gspec[1, 3] = ncols_entry
