@@ -4,6 +4,7 @@ Dashboard for pipetask-plot-navigator
 
 """
 import os
+import sys
 import logging
 
 # Configure logging
@@ -24,6 +25,12 @@ import panel as pn
 pn.extension()
 
 import lsst.daf.butler as dafButler
+
+try:
+    repo_config_string = os.environ['BUTLER_REPO']
+except KeyError:
+    print("Must set environment variable BUTLER_REPO with butler config path.")
+    sys.exit(0)
 
 config = None
 butler = None
@@ -65,20 +72,10 @@ def get_tracts(refs):
     return tracts
 
 
-root_entry = pn.widgets.TextInput(name="Repo root directory", value="/project/hsc/gen3repo")
-repo_select = pn.widgets.Select(
-    name="Repository",
-    options=[p for p in Path(root_entry.value).glob("*") if p.joinpath("butler.yaml").exists()],
-    value=None,
-)
 collection_select = pn.widgets.AutocompleteInput(name="Collection", options=collections)
-repo2_select = pn.widgets.Select(
-    name="Repository 2",
-    options=['None'] + [p for p in Path(root_entry.value).glob("*") if p.joinpath("butler.yaml").exists()],
-    value=None,
-)
 collection2_select = pn.widgets.AutocompleteInput(name="Collection 2", options=collections2)
 
+skymap_select = pn.widgets.MultiChoice(name="Skymap", options=["DC2", "hsc_rings_v1"])
 tract_select = pn.widgets.MultiSelect(name="Tract", options=[])
 plot_filter = pn.widgets.TextInput(name="Plot name filter", value="")
 
@@ -94,35 +91,13 @@ ncols_entry = pn.widgets.IntInput(name="n_cols", start=1, end=4, step=1, value=2
 plots = pn.GridBox(["Plots will show up here when selected."], ncols=2)
 plots2 = pn.GridBox([], ncols=2)
 
-def update_repo_root(event):
-    try:
-        log.debug(f'Files in root directory: {[p for p in Path(root_entry.value).glob("*")]}')
-        repo_options = []
-        for p in Path(root_entry.value).glob("*"):
-            try:
-                if p.joinpath("butler.yaml").exists():
-                    repo_options.append(p)
-            except Exception as e:
-                pass
-        repo_select.options = repo_options
-        log.debug(f'repo_select.options: {repo_select.options}')
-        update_butler(None)
-    except Exception as e:
-        log.error(f'{str(e)}')
-    
-root_entry.param.watch(update_repo_root, 'value')
-
 def update_butler(event):
     global config
     global butler
     global registry
 
     try:
-        log.debug(f'Repo root directory: {root_entry.value}')
-        log.debug(f'Selected repo: {repo_select.value}')
-        config = repo_select.value.joinpath("butler.yaml")
-        log.debug(f'Butler config: {config}')
-        butler = dafButler.Butler(config=str(config))
+        butler = dafButler.Butler(config=repo_config_string)
         registry = butler.registry
         collections = list(registry.queryCollections())
         collection_select.options = collections
@@ -135,33 +110,27 @@ def update_butler(event):
 
 update_butler(None)
 
-repo_select.param.watch(update_butler, "value")
-
-
 def update_butler2(event):
-    global config2
     global butler2
     global registry2
 
     try:
         if repo2_select.value == 'None':
-            config2 = None
             butler2 = None
             registry2 = None
             collection2_select.options = []
-            
+
             debug_text.value = f"butler2 set to None."
-        else:            
-            config2 = repo2_select.value.joinpath("butler.yaml")
-            butler2 = dafButler.Butler(config=str(config2))
+        else:
+            butler2 = dafButler.Butler(config=repo_config_string)
             registry2 = butler2.registry
             collections2 = list(registry2.queryCollections())
             collection2_select.options = collections2
             collection2_select.value = collections2[0]
 
-            debug_text.value = f"Successfully loaded butler2 from {config}."
+            debug_text.value = f"Successfully loaded butler2."
     except:
-        debug_text.value = f"Failed to load butler2 from {config}"
+        debug_text.value = f"Failed to load butler2."
 #         collection2_select.value = ""
         raise
 
@@ -219,7 +188,7 @@ def update_plot_names(event):
                 types,
                 collections=collection_select.value,
                 findFirst=True,
-                dataId={"skymap": "hsc_rings_v1", "tract": tract},
+                dataId={"skymap": skymap_select.value, "tract": tract},
             )
             if re.search(plot_filter.value, ref.datasetType.name)
         ]
@@ -232,7 +201,7 @@ def update_plot_names(event):
                     types,
                     collections=collection2_select.value,
                     findFirst=True,
-                    dataId={"skymap": "hsc_rings_v1", "tract": tract},
+                    dataId={"skymap": skymap_select.value, "tract": tract},
                 )
                 if re.search(plot_filter.value, ref.datasetType.name)
             ]
@@ -312,15 +281,16 @@ refresh_button.on_click(refresh)
 
 gspec = pn.GridSpec(sizing_mode="stretch_height", max_height=800)
 
-repo_collection_tabs = pn.Tabs(('Collection 1', pn.Column(repo_select, collection_select)), 
-                               ('Collection 2', pn.Column(repo2_select, collection2_select)))
+repo_collection_tabs = pn.Tabs(('Collection 1', pn.Column(collection_select)),
+                               ('Collection 2', pn.Column(collection2_select)))
 
 gspec[0, 0:2] = root_entry
 gspec[1:3, 0:2] = repo_collection_tabs
 gspec[3, 0:2] = refresh_button
-gspec[4, 0:2] = tract_select
-gspec[5, 0:2] = plot_filter
-gspec[6:12, 0:2] = plot_select
+gspec[4, 0:2] = skymap_select
+gspec[5, 0:2] = tract_select
+gspec[6, 0:2] = plot_filter
+gspec[7:12, 0:2] = plot_select
 gspec[0, 2:4] = debug_text
 gspec[1, 2] = width_entry
 gspec[1, 3] = ncols_entry
