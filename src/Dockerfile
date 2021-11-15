@@ -26,4 +26,4 @@ WORKDIR /home/worker/
 COPY --chown=worker:worker ./ app/
 WORKDIR /home/worker/app
 
-CMD panel serve dashboard_gen3.py --port 8080
+CMD panel serve dashboard_gen3.py --port 8080 --static-dirs assets=./assets
