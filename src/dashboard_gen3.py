@@ -65,20 +65,28 @@ def initialize():
     plot_paths = {}
     plot_paths2 = {}
     
-def get_tracts(refs):
-    tracts = list(set(r.dataId["tract"] for r in refs))
+def get_tracts(refs, skymap):
+    tracts = list(set(r.dataId["tract"] for r in refs
+                      if ("tract" in r.dataId) & (r.dataId.get('skymap', '') == skymap)))
     tracts.sort()
     return tracts
 
+def get_visits(refs, instrument):
+    visits = list(set(r.dataId["visit"] for r in refs
+                      if (("visit" in r.dataId) & (r.dataId.get('instrument', '') == instrument))))
+    visits.sort()
+    return visits
 
 collection_select = pn.widgets.AutocompleteInput(name="Collection", options=collections)
 collection2_select = pn.widgets.AutocompleteInput(name="Collection 2", options=collections2)
 
 skymap_select = pn.widgets.Select(name="Skymap", options=["DC2", "hsc_rings_v1"])
-tract_select = pn.widgets.MultiSelect(name="Tract", options=[])
+instrument_select = pn.widgets.Select(name="Instrument", options=["LSSTCam-imSim", "HSC"])
+tract_select = pn.widgets.MultiSelect(name="Tract", options=[], size=8)
+visit_select = pn.widgets.MultiSelect(name="Visit", options=[], size=8)
 plot_filter = pn.widgets.TextInput(name="Plot name filter", value="")
 
-plot_select = pn.widgets.MultiSelect(name="Plots", options=[],)
+plot_select = pn.widgets.MultiSelect(name="Plots", options=[], size=12)
 
 debug_text = pn.widgets.StaticText(value="")
 
@@ -116,11 +124,8 @@ update_butler(None)
 def find_types(registry, storageClassName='Plot'):
     types = []
     for t in registry.queryDatasetTypes():
-        try:
-            if t.storageClass.name == storageClassName:
-                types.append(t)
-        except:
-            pass    
+        if t.storageClass.name == storageClassName:
+            types.append(t)
 
     return types
         
@@ -132,22 +137,28 @@ def update_tract_select(event):
     
     types = find_types(registry)
     if registry is not None:
-        try:
-            refs = find_refs(collection_select.value, types)
-            if registry2 is not None:
-                refs2 = find_refs(collection2_select.value, types)
-            else:
-                refs2 = refs
+        refs = find_refs(collection_select.value, types)
 
-            tract_select.options = list(set(get_tracts(refs)).intersection(set(get_tracts(refs2))))
-            tract_select.value = []
-        except:
-            debug_text.value += f'; {event.new}'
+        tract_select.options = get_tracts(refs, skymap_select.value)
+        tract_select.value = []
 
+def update_visit_select(event):
+    global registry
+    
+    types = find_types(registry)
+    if registry is not None:
+
+        refs = find_refs(collection_select.value, types)
+
+        visit_select.options = get_visits(refs, instrument_select.value)
+        visit_select.value = []
         
 collection_select.param.watch(update_tract_select, "value")
 collection2_select.param.watch(update_tract_select, "value")
 skymap_select.param.watch(update_tract_select, "value")
+
+instrument_select.param.watch(update_visit_select, "value")
+collection_select.param.watch(update_visit_select, "value")
 
 def update_plot_names(event):
     global plot_paths, plot_paths2
@@ -157,62 +168,51 @@ def update_plot_names(event):
     plot_refs = []
     plot_refs2 = []
     types = find_types(registry)
-    
-    for tract in tract_select.value:
-        refs = [
-            ref
-            for ref in registry.queryDatasets(
-                types,
-                collections=collection_select.value,
-                findFirst=True,
-                dataId={"skymap": skymap_select.value, "tract": tract},
-            )
-            if re.search(plot_filter.value, ref.datasetType.name)
-        ]
-        names = [f"{p.datasetType.name} ({tract})" for p in refs]
 
-        if registry2 is not None:
-            refs2 = [
+    if(visit_tract_tabs.active == 0):
+        for tract in tract_select.value:
+            refs = [
                 ref
-                for ref in registry2.queryDatasets(
+                for ref in registry.queryDatasets(
                     types,
-                    collections=collection2_select.value,
+                    collections=collection_select.value,
                     findFirst=True,
                     dataId={"skymap": skymap_select.value, "tract": tract},
                 )
                 if re.search(plot_filter.value, ref.datasetType.name)
             ]
-            names2 = [f"{p.datasetType.name} ({tract})" for p in refs2]
-        else:
-            refs2 = refs
-            names2 = names
-        
-        plot_refs.extend(refs)
-        plot_refs2.extend(refs2)
-        plot_names.extend(names)
-        plot_names2.extend(names2)
+            names = [f"{p.datasetType.name} ({tract})" for p in refs]
+
+            plot_refs.extend(refs)
+            plot_names.extend(names)
+    else:
+        for visit in visit_select.value:
+
+            refs = list(registry.queryDatasets(types, collections=collection_select.value, findFirst=True,
+                                          dataId={"instrument": instrument_select.value, "visit": visit}))
+
+            if(len(plot_filter.value) > 0):
+                refs = filter(lambda ref: re.search(plot_filter.value, ref.datasetType.name), refs)
+
+            names = [f"{p.datasetType.name} ({visit})" for p in refs]
+
+            plot_refs.extend(refs)
+            plot_names.extend(names)
 
     plot_paths = {
         name: butler.getURI(ref, collections=collection_select.value).path
         for name, ref in zip(plot_names, plot_refs)
     }
-    
-    if registry2 is not None:
-        plot_paths2 = {
-            name: butler2.getURI(ref, collections=collection2_select.value).path
-            for name, ref in zip(plot_names2, plot_refs2)
-        }
 
-#     debug_text.value = str(plot_names) + '\n' + str(plot_names2)
 
-    plot_names = list(set(plot_names).intersection(plot_names2))
     plot_names.sort()
     plot_select.options = plot_names
-        
+
 collection_select.param.watch(update_plot_names, "value")
 collection2_select.param.watch(update_plot_names, "value")
 plot_filter.param.watch(update_plot_names, "value")
 tract_select.param.watch(update_plot_names, "value")
+visit_select.param.watch(update_plot_names, "value")
 
 
 def get_png(name):
@@ -246,9 +246,14 @@ ncols_entry.param.watch(update_plot_layout, "value")
 refresh_button = pn.widgets.Button(name='Reload', button_type='default')
 
 def refresh(event):
-    # update_butler(event)
-    update_tract_select(event)
+
+    if(visit_tract_tabs.active == 0):
+        update_tract_select(event)
+    else:
+        update_visit_select(event)
+
     update_plot_names(event)
+
     plots.objects = [get_png(name) for name in plot_select.value]
     if registry2 is not None:
         plots2.objects = [get_png2(name) for name in plot_select.value]
@@ -257,16 +262,22 @@ refresh_button.on_click(refresh)
 
 
 bootstrap = pn.template.BootstrapTemplate(title="Rubin Plot Navigator",
-                                             favicon="/assets/rubin-favicon-transparent-32px.png")
-
-repo_collection_tabs = pn.Tabs(('Collection 1', pn.Column(collection_select)),
-                               ('Collection 2', pn.Column(collection2_select)))
+                                             favicon="assets/rubin-favicon-transparent-32px.png")
 
 
-bootstrap.sidebar.append(repo_collection_tabs)
+# Multiple collections are temporarily disabled.
+#
+# repo_collection_tabs = pn.Tabs(('Collection 1', pn.Column(collection_select)),
+#                                ('Collection 2', pn.Column(collection2_select)))
+
+visit_tract_tabs = pn.Tabs(('Tracts', pn.Column(skymap_select, tract_select)),
+                           ('Visits', pn.Column(instrument_select, visit_select)))
+visit_tract_tabs.param.watch(update_plot_names, "active")
+
+# bootstrap.sidebar.append(repo_collection_tabs)
+bootstrap.sidebar.append(collection_select)
 bootstrap.sidebar.append(refresh_button)
-bootstrap.sidebar.append(skymap_select)
-bootstrap.sidebar.append(tract_select)
+bootstrap.sidebar.append(visit_tract_tabs)
 bootstrap.sidebar.append(plot_filter)
 bootstrap.sidebar.append(plot_select)
 
@@ -274,7 +285,11 @@ bootstrap.sidebar.append(width_entry)
 bootstrap.sidebar.append(ncols_entry)
 
 bootstrap.main.append(debug_text)
-bootstrap.main.append(pn.Tabs(('collection 1', plots), ('collection 2', plots2)))
+
+# Multiple collections are temporarily disabled.
+#
+# bootstrap.main.append(pn.Tabs(('collection 1', plots), ('collection 2', plots2)))
+bootstrap.main.append(plots)
 
 
 with open("bootstrap_override.css") as f:
