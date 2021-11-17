@@ -5,6 +5,10 @@ RUN apt-get --allow-releaseinfo-change update && \
         build-essential \
     && rm -rf /var/lib/apt/lists/* 
 
+
+RUN conda config --add channels conda-forge 
+RUN conda install panel=0.12 bokeh psycopg2=2
+
 RUN git clone https://github.com/lsst/sphgeom /lsst-sphgeom
 WORKDIR /lsst-sphgeom
 RUN pip install .
@@ -13,11 +17,6 @@ WORKDIR /lsst-daf_butler
 RUN pip install -r requirements.txt  # this shouldn't be necessary; putting it in to update cache.
 RUN pip install .
 WORKDIR /
-
-RUN conda install -c holoviz panel=0.12.4
-RUN conda install bokeh=2.3.3
-RUN conda install psycopg2
-# RUN conda install -c dask-kubernetes -c conda-forge
 
 RUN useradd --create-home --shell /bin/bash worker --uid 1000
 USER worker
