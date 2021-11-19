@@ -7,7 +7,7 @@ RUN apt-get --allow-releaseinfo-change update && \
 
 
 RUN conda config --add channels conda-forge 
-RUN conda install panel=0.12 bokeh psycopg2=2
+RUN conda install panel=0.12 bokeh psycopg2=2 ipython
 
 RUN git clone https://github.com/lsst/sphgeom /lsst-sphgeom
 WORKDIR /lsst-sphgeom
