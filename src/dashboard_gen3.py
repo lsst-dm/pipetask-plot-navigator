@@ -21,6 +21,7 @@ except:
 from pathlib import Path
 import re
 import panel as pn
+from IPython.display import Image
 
 import lsst.daf.butler as dafButler
 
@@ -200,7 +201,7 @@ def update_plot_names(event):
             plot_names.extend(names)
 
     plot_paths = {
-        name: butler.getURI(ref, collections=collection_select.value).path
+        name: butler.getURI(ref, collections=collection_select.value)
         for name, ref in zip(plot_names, plot_refs)
     }
 
@@ -216,10 +217,10 @@ visit_select.param.watch(update_plot_names, "value")
 
 
 def get_png(name):
-    return pn.pane.PNG(plot_paths[name], width=width_entry.value)
+    return pn.pane.PNG(Image(data=plot_paths[name].read()), width=width_entry.value)
 
 def get_png2(name):
-    return pn.pane.PNG(plot_paths2[name], width=width_entry.value)
+    return pn.pane.PNG(Image(data=plot_paths2[name].read()), width=width_entry.value)
 
 def update_plots(event):
 #     debug_text.value = [plot_paths[name] for name in event.new]    
