@@ -43,6 +43,7 @@ collections2 = []
 
 plot_paths = {}
 plot_paths2 = {}
+plot_datasettypes = {}
 
 
 pn.extension()
@@ -125,8 +126,13 @@ update_butler(None)
 def find_types(registry, storageClassName='Plot'):
     types = []
     for t in registry.queryDatasetTypes():
-        if t.storageClass.name == storageClassName:
-            types.append(t)
+        try:
+            if t.storageClass.name == storageClassName:
+                types.append(t)
+        except KeyError:
+            # If we don't have the code for a given StorageClass in the environment, 
+            # this test will throw a key error.
+            pass
 
     return types
         
@@ -162,7 +168,7 @@ instrument_select.param.watch(update_visit_select, "value")
 collection_select.param.watch(update_visit_select, "value")
 
 def update_plot_names(event):
-    global plot_paths, plot_paths2
+    global plot_paths, plot_paths2, plot_datasettypes 
 
     plot_names = []
     plot_names2 = []
@@ -195,19 +201,21 @@ def update_plot_names(event):
             if(len(plot_filter.value) > 0):
                 refs = filter(lambda ref: re.search(plot_filter.value, ref.datasetType.name), refs)
 
-            names = [f"{p.datasetType.name} ({visit})" for p in refs]
+            names = [(f"{p.datasetType.name} ({visit})", p.datasetType.name) for p in refs]
 
             plot_refs.extend(refs)
             plot_names.extend(names)
 
     plot_paths = {
-        name: butler.getURI(ref, collections=collection_select.value)
+        name[0]: butler.getURI(ref, collections=collection_select.value)
         for name, ref in zip(plot_names, plot_refs)
     }
 
+    plot_datasettypes = { name[0]: name[1] for name in plot_names}
+
 
     plot_names.sort()
-    plot_select.options = plot_names
+    plot_select.options = list(plot_paths.keys())
 
 collection_select.param.watch(update_plot_names, "value")
 collection2_select.param.watch(update_plot_names, "value")
@@ -217,6 +225,7 @@ visit_select.param.watch(update_plot_names, "value")
 
 
 def get_png(name):
+    print(plot_paths.keys())
     return pn.pane.PNG(Image(data=plot_paths[name].read()), width=width_entry.value)
 
 def get_png2(name):
@@ -271,8 +280,66 @@ bootstrap = pn.template.BootstrapTemplate(title="Rubin Plot Navigator",
 # repo_collection_tabs = pn.Tabs(('Collection 1', pn.Column(collection_select)),
 #                                ('Collection 2', pn.Column(collection2_select)))
 
-visit_tract_tabs = pn.Tabs(('Tracts', pn.Column(skymap_select, tract_select)),
-                           ('Visits', pn.Column(instrument_select, visit_select)))
+def next_visit(event):
+    selected_plot_datasets = set(plot_datasettypes[x] for x in plot_select.value)
+    increment_visit(increment=1)
+    plot_select.value = [plot_name for plot_name in plot_select.options
+                         if plot_name.split(' ')[0] in selected_plot_datasets]
+
+def prev_visit(event):
+    selected_plot_datasets = set(plot_datasettypes[x] for x in plot_select.value)
+    increment_visit(increment=-1)
+    plot_select.value = [plot_name for plot_name in plot_select.options
+                         if plot_name.split(' ')[0] in selected_plot_datasets]
+
+def increment_visit(increment=1):
+    if(len(visit_select.value) == 0):
+        return
+
+    # If there are multiple selections, take the last one
+    selected_visit = visit_select.value[-1]
+
+    selected_visit_index = visit_select.options.index(selected_visit)
+    if((selected_visit_index > 0) and (selected_visit_index < (len(visit_select.options)+1))):
+        visit_select.value = [visit_select.options[selected_visit_index + increment]]
+
+def next_tract(event):
+    selected_plot_datasets = set(plot_datasettypes[x] for x in plot_select.value)
+    increment_tract(increment=1)
+    plot_select.value = [plot_name for plot_name in plot_select.options
+                         if plot_name.split(' ')[0] in selected_plot_datasets]
+
+def prev_tract(event):
+    selected_plot_datasets = set(plot_datasettypes[x] for x in plot_select.value)
+    increment_tract(increment=-1)
+    plot_select.value = [plot_name for plot_name in plot_select.options
+                         if plot_name.split(' ')[0] in selected_plot_datasets]
+
+def increment_tract(increment=1):
+    if(len(tract_select.value) == 0):
+        return
+
+    # If there are multiple selections, take the last one
+    selected_tract = tract_select.value[-1]
+
+    selected_tract_index = tract_select.options.index(selected_tract)
+    if((selected_tract_index > 0) and (selected_tract_index < (len(tract_select.options)+1))):
+        tract_select.value = [tract_select.options[selected_tract_index + increment]]
+
+next_visit_button = pn.widgets.Button(name="Next Visit", width=80)
+prev_visit_button = pn.widgets.Button(name="Prev Visit", width=80)
+next_prev_visit_row = pn.Row(prev_visit_button, next_visit_button)
+next_visit_button.on_click(next_visit)
+prev_visit_button.on_click(prev_visit)
+
+next_tract_button = pn.widgets.Button(name="Next Tract", width=80)
+prev_tract_button = pn.widgets.Button(name="Prev Tract", width=80)
+next_prev_tract_row = pn.Row(prev_tract_button, next_tract_button)
+next_tract_button.on_click(next_tract)
+prev_tract_button.on_click(prev_tract)
+
+visit_tract_tabs = pn.Tabs(('Tracts', pn.Column(skymap_select, tract_select, next_prev_tract_row)),
+                           ('Visits', pn.Column(instrument_select, visit_select, next_prev_visit_row)))
 visit_tract_tabs.param.watch(update_plot_names, "active")
 
 # bootstrap.sidebar.append(repo_collection_tabs)
