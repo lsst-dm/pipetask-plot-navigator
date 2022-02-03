@@ -215,7 +215,9 @@ def update_plot_names(event):
                 )
                 if re.search(plot_filter.value, ref.datasetType.name)
             ]
-            names = [f"{p.datasetType.name} ({tract})" for p in refs]
+            names = [
+                (f"{p.datasetType.name} ({tract})", p.datasetType.name) for p in refs
+            ]
 
             plot_refs.extend(refs)
             plot_names.extend(names)
@@ -262,7 +264,6 @@ visit_select.param.watch(update_plot_names, "value")
 
 
 def get_png(name):
-    print(plot_paths.keys())
     return pn.pane.PNG(Image(data=plot_paths[name].read()), width=width_entry.value)
 
 
