@@ -215,6 +215,7 @@ def update_plot_names(event):
                 )
                 if re.search(plot_filter.value, ref.datasetType.name)
             ]
+            refs.sort(key=lambda x: x.datasetType.name)
             names = [
                 (f"{p.datasetType.name} ({tract})", p.datasetType.name) for p in refs
             ]
