@@ -25,24 +25,20 @@ from IPython.display import Image
 
 import lsst.daf.butler as dafButler
 
-try:
-    repo_config_string = os.environ["BUTLER_URI"]
-except KeyError:
-    print("Must set environment variable BUTLER_URI with butler config path.")
+repo_config_string = os.environ.get("BUTLER_URI", None)
+default_repo = os.environ.get("BUTLER_DEFAULT_REPO", None)
+
+if(len(dafButler.Butler.get_known_repos()) == 0 and repo_config_string is None):
+    print("No butler repo aliases configured, must set environment variable BUTLER_URI with butler config path.")
     sys.exit(0)
+
 
 config = None
 butler = None
 registry = None
 collections = []
 
-config2 = None
-butler2 = None
-registry2 = None
-collections2 = []
-
 plot_paths = {}
-plot_paths2 = {}
 plot_datasettypes = {}
 
 
@@ -51,22 +47,15 @@ pn.extension()
 
 def initialize():
     global config, butler, registry, collections
-    global config2, butler2, registry2, collections2
 
-    global plot_paths, plot_paths2
+    global plot_paths
 
     config = None
     butler = None
     registry = None
     collections = []
 
-    config2 = None
-    butler2 = None
-    registry2 = None
-    collections2 = []
-
     plot_paths = {}
-    plot_paths2 = {}
 
 
 def get_tracts(refs, skymap):
@@ -92,15 +81,13 @@ def get_visits(refs, instrument):
     visits.sort()
     return visits
 
+repo_select = pn.widgets.Select(name="Repo", options=list(dafButler.Butler.get_known_repos()))
 
 collection_select = pn.widgets.AutocompleteInput(name="Collection", options=collections)
-collection2_select = pn.widgets.AutocompleteInput(
-    name="Collection 2", options=collections2
-)
 
-skymap_select = pn.widgets.Select(name="Skymap", options=["DC2", "hsc_rings_v1"])
+skymap_select = pn.widgets.Select(name="Skymap", options=["hsc_rings_v1", "DC2"])
 instrument_select = pn.widgets.Select(
-    name="Instrument", options=["LSSTCam-imSim", "HSC"]
+    name="Instrument", options=["HSC", "LATISS", "LSSTCam-imSim"]
 )
 tract_select = pn.widgets.MultiSelect(name="Tract", options=[], size=8)
 visit_select = pn.widgets.MultiSelect(name="Visit", options=[], size=8)
@@ -118,7 +105,6 @@ ncols_entry = pn.widgets.IntInput(name="n_cols", start=1, end=4, step=1, value=2
 # ncols_slider = pn.widgets.IntSlider(name='Number of columns', start=1, end=4, step=1, value=2)
 
 plots = pn.GridBox(["Plots will show up here when selected."], ncols=2)
-plots2 = pn.GridBox([], ncols=2)
 
 
 def update_butler(event):
@@ -127,21 +113,19 @@ def update_butler(event):
     global registry
 
     try:
-        butler = dafButler.Butler(config=repo_config_string)
+        butler = dafButler.Butler(config=repo_select.value)
         registry = butler.registry
         collections = list(registry.queryCollections())
         collection_select.options = collections
         collection_select.value = collections[0]
-
-        collection2_select.options = collections
-        collection2_select.value = collections[0]
 
         debug_text.value = "Successfully loaded butler."
     except Exception as e:
         debug_text.value = f"Failed to load Butler: {str(e)}"
         log.error(f"{str(e)}")
 
-
+if default_repo is not None:
+    repo_select.value = default_repo
 update_butler(None)
 
 
@@ -186,8 +170,9 @@ def update_visit_select(event):
         visit_select.value = []
 
 
+repo_select.param.watch(update_butler, "value")
+
 collection_select.param.watch(update_tract_select, "value")
-collection2_select.param.watch(update_tract_select, "value")
 skymap_select.param.watch(update_tract_select, "value")
 
 instrument_select.param.watch(update_visit_select, "value")
@@ -195,12 +180,10 @@ collection_select.param.watch(update_visit_select, "value")
 
 
 def update_plot_names(event):
-    global plot_paths, plot_paths2, plot_datasettypes
+    global plot_paths, plot_datasettypes
 
     plot_names = []
-    plot_names2 = []
     plot_refs = []
-    plot_refs2 = []
     types = find_types(registry)
 
     if visit_tract_tabs.active == 0:
@@ -258,7 +241,6 @@ def update_plot_names(event):
 
 
 collection_select.param.watch(update_plot_names, "value")
-collection2_select.param.watch(update_plot_names, "value")
 plot_filter.param.watch(update_plot_names, "value")
 tract_select.param.watch(update_plot_names, "value")
 visit_select.param.watch(update_plot_names, "value")
@@ -268,14 +250,8 @@ def get_png(name):
     return pn.pane.PNG(Image(data=plot_paths[name].read()), width=width_entry.value)
 
 
-def get_png2(name):
-    return pn.pane.PNG(Image(data=plot_paths2[name].read()), width=width_entry.value)
-
-
 def update_plots(event):
     plots.objects = [get_png(name) for name in event.new]
-    if registry2 is not None:
-        plots2.objects = [get_png2(name) for name in event.new]
 
 
 plot_select.param.watch(update_plots, "value")
@@ -285,11 +261,8 @@ def update_plot_layout(event):
 
     for plot in plots:
         plot.width = width_entry.value
-    for plot in plots2:
-        plot.width = width_entry.value
 
     plots.ncols = ncols_entry.value
-    plots2.ncols = ncols_entry.value
 
 
 width_entry.param.watch(update_plot_layout, "value")
@@ -308,8 +281,6 @@ def refresh(event):
     update_plot_names(event)
 
     plots.objects = [get_png(name) for name in plot_select.value]
-    if registry2 is not None:
-        plots2.objects = [get_png2(name) for name in plot_select.value]
 
 
 refresh_button.on_click(refresh)
@@ -412,6 +383,7 @@ visit_tract_tabs = pn.Tabs(
 )
 visit_tract_tabs.param.watch(update_plot_names, "active")
 
+bootstrap.sidebar.append(repo_select)
 bootstrap.sidebar.append(collection_select)
 bootstrap.sidebar.append(refresh_button)
 bootstrap.sidebar.append(visit_tract_tabs)
