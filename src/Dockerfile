@@ -1,22 +1,13 @@
-FROM continuumio/miniconda3:4.9.2
+FROM continuumio/miniconda3:4.12.0
 
 RUN apt-get --allow-releaseinfo-change update && \
-    apt-get install -y \
-        build-essential \
-    && rm -rf /var/lib/apt/lists/* 
+     rm -rf /var/lib/apt/lists/*
 
 
 RUN conda config --add channels conda-forge 
 RUN conda install panel=0.12 bokeh psycopg2=2 ipython
 
-RUN git clone https://github.com/lsst/sphgeom /lsst-sphgeom
-WORKDIR /lsst-sphgeom
-RUN pip install .
-RUN git clone https://github.com/lsst/daf_butler /lsst-daf_butler
-WORKDIR /lsst-daf_butler
-RUN pip install -r requirements.txt  # this shouldn't be necessary; putting it in to update cache.
-RUN pip install .
-WORKDIR /
+RUN pip install lsst-daf-butler
 
 RUN useradd --create-home --shell /bin/bash worker --uid 1000
 USER worker
