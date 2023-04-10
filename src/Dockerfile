@@ -10,7 +10,7 @@ RUN conda install panel=0.12 bokeh psycopg2=2 ipython
 RUN pip install lsst-daf-butler
 
 RUN groupadd -g 4085 rubin_users
-RUN useradd --create-home --shell /bin/bash worker --uid 1000 -g 4085
+RUN useradd --create-home --shell /bin/bash worker --uid 1000 -G 4085
 USER worker
 WORKDIR /home/worker/
 
