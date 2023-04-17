@@ -83,6 +83,8 @@ def get_visits(refs, instrument):
 
 repo_select = pn.widgets.Select(name="Repo", options=list(dafButler.Butler.get_known_repos()))
 
+all_collections = pn.widgets.Checkbox(name="Show all collections")
+all_collections.value = False
 collection_select = pn.widgets.AutocompleteInput(name="Collection", options=collections)
 
 skymap_select = pn.widgets.Select(name="Skymap", options=["hsc_rings_v1", "DC2"])
@@ -115,7 +117,16 @@ def update_butler(event):
     try:
         butler = dafButler.Butler(config=repo_select.value)
         registry = butler.registry
-        collections = list(registry.queryCollections())
+
+        if(all_collections.value):
+            collections = list(registry.queryCollections())
+            collections.sort()
+        else:
+            chains = set(butler.registry.queryCollections(collectionTypes={dafButler.CollectionType.CHAINED}))
+            rest = {r for r in butler.registry.queryCollections(collectionTypes={dafButler.CollectionType.RUN, dafButler.CollectionType.TAGGED}) if not any(r.startswith(c) for c in chains)}
+            collections = list(chains) + list(rest)
+            collections.sort()
+
         collection_select.options = collections
         collection_select.value = collections[0]
 
@@ -171,6 +182,7 @@ def update_visit_select(event):
 
 
 repo_select.param.watch(update_butler, "value")
+all_collections.param.watch(update_butler, "value")
 
 collection_select.param.watch(update_tract_select, "value")
 skymap_select.param.watch(update_tract_select, "value")
@@ -385,6 +397,7 @@ visit_tract_tabs.param.watch(update_plot_names, "active")
 
 bootstrap.sidebar.append(repo_select)
 bootstrap.sidebar.append(collection_select)
+bootstrap.sidebar.append(all_collections)
 bootstrap.sidebar.append(refresh_button)
 bootstrap.sidebar.append(visit_tract_tabs)
 bootstrap.sidebar.append(plot_filter)
