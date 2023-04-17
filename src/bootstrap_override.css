@@ -24,3 +24,7 @@
     color: #058b8c;
     font-size: 1.7em;
 }
+
+select {
+    overflow-x: auto;
+}
