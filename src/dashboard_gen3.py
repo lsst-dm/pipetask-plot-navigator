@@ -87,10 +87,9 @@ all_collections = pn.widgets.Checkbox(name="Show all collections")
 all_collections.value = False
 collection_select = pn.widgets.AutocompleteInput(name="Collection", options=collections)
 
-skymap_select = pn.widgets.Select(name="Skymap", options=["hsc_rings_v1", "DC2"])
-instrument_select = pn.widgets.Select(
-    name="Instrument", options=["HSC", "LATISS", "LSSTCam-imSim"]
-)
+skymap_select = pn.widgets.Select(name="Skymap")
+instrument_select = pn.widgets.Select(name="Instrument")
+
 tract_select = pn.widgets.MultiSelect(name="Tract", options=[], size=8)
 visit_select = pn.widgets.MultiSelect(name="Visit", options=[], size=8)
 plot_filter = pn.widgets.TextInput(name="Plot name filter", value="")
@@ -129,6 +128,9 @@ def update_butler(event):
 
         collection_select.options = collections
         collection_select.value = collections[0]
+
+        skymap_select.options = [x.name for x in registry.queryDimensionRecords("skymap")]
+        instrument_select.options = [x.name for x in registry.queryDimensionRecords("instrument")]
 
         debug_text.value = "Successfully loaded butler."
     except Exception as e:
