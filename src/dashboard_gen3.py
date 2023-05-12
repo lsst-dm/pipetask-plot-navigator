@@ -81,7 +81,9 @@ def get_visits(refs, instrument):
     visits.sort()
     return visits
 
-repo_select = pn.widgets.Select(name="Repo", options=list(dafButler.Butler.get_known_repos()))
+known_repos = list(dafButler.Butler.get_known_repos())
+known_repos.sort()
+repo_select = pn.widgets.Select(name="Repo", options=known_repos)
 
 all_collections = pn.widgets.Checkbox(name="Show all collections")
 all_collections.value = False
@@ -126,16 +128,18 @@ def update_butler(event):
             collections = list(chains) + list(rest)
             collections.sort()
 
-        collection_select.options = collections
-        collection_select.value = collections[0]
-
-        skymap_select.options = [x.name for x in registry.queryDimensionRecords("skymap")]
-        instrument_select.options = [x.name for x in registry.queryDimensionRecords("instrument")]
 
         debug_text.value = "Successfully loaded butler."
     except Exception as e:
         debug_text.value = f"Failed to load Butler: {str(e)}"
         log.error(f"{str(e)}")
+        return
+
+    collection_select.options = collections
+    collection_select.value = collections[0]
+
+    skymap_select.options = [x.name for x in registry.queryDimensionRecords("skymap")]
+    instrument_select.options = [x.name for x in registry.queryDimensionRecords("instrument")]
 
 if default_repo is not None:
     repo_select.value = default_repo
@@ -157,22 +161,30 @@ def find_types(registry, storageClassName="Plot"):
 
 
 def find_refs(collection, types):
-    return list(registry.queryDatasets(types, collections=collection, findFirst=True))
+    if(len(collection) == 0):
+        return []
+    else:
+        return list(registry.queryDatasets(types, collections=collection, findFirst=True))
 
 
 def update_tract_select(event):
     global registry
 
-    types = find_types(registry)
-    if registry is not None:
-        refs = find_refs(collection_select.value, types)
+    if registry is None or collection_select.value is None:
+        return
 
-        tract_select.options = get_tracts(refs, skymap_select.value)
-        tract_select.value = []
+    types = find_types(registry)
+    refs = find_refs(collection_select.value, types)
+
+    tract_select.options = get_tracts(refs, skymap_select.value)
+    tract_select.value = []
 
 
 def update_visit_select(event):
     global registry
+
+    if registry is None or collection_select.value is None:
+        return
 
     types = find_types(registry)
     if registry is not None:
