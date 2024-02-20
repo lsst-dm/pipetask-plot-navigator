@@ -25,6 +25,6 @@
     font-size: 1.7em;
 }
 
-select {
+select.bk-input {
     overflow-x: auto;
 }
