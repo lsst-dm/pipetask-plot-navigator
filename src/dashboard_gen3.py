@@ -30,6 +30,24 @@ repo_config_string = os.environ.get("BUTLER_URI", None)
 default_repo = os.environ.get("BUTLER_DEFAULT_REPO", None)
 default_collection = os.environ.get("BUTLER_DEFAULT_COLLECTION", None)
 
+try:
+    repo_args = pn.state.session_args.get('repo')
+    if(repo_args is not None):
+        default_repo = repo_args[0].decode()
+except Exception as e:
+    log.error(e)
+
+log.info("Starting with repo {:s}".format(default_repo))
+
+try:
+    coll_args = pn.state.session_args.get('collection')
+    if(coll_args is not None):
+        default_collection = coll_args[0].decode()
+except Exception as e:
+    log.error(e)
+
+log.info("Starting with collection {:s}".format(default_collection))
+
 if(len(dafButler.Butler.get_known_repos()) == 0 and repo_config_string is None):
     log.error("No butler repo aliases configured, must set environment variable BUTLER_URI with butler config path.")
     sys.exit(0)
@@ -206,6 +224,11 @@ def update_visit_select(event):
         visit_select.value = []
 
 
+def update_url(event):
+    prefix = pn.state.location.href.split('?')[0]
+    link_text_input.value = f"{prefix:s}?repo={repo_select.value:s}&collection={collection_select.value:s}"
+
+
 repo_select.param.watch(update_butler, "value")
 all_collections.param.watch(update_butler, "value")
 
@@ -214,6 +237,9 @@ skymap_select.param.watch(update_tract_select, "value")
 
 instrument_select.param.watch(update_visit_select, "value")
 collection_select.param.watch(update_visit_select, "value")
+
+collection_select.param.watch(update_url, "value")
+
 
 
 def update_plot_names(event):
@@ -367,6 +393,9 @@ width_entry.param.watch(update_plot_layout, "value")
 ncols_entry.param.watch(update_plot_layout, "value")
 
 refresh_button = pn.widgets.Button(name="Reload", button_type="default")
+show_link_button = pn.widgets.Toggle(name="Show Link")
+link_text_input = pn.widgets.TextInput(disabled=True, value="URL", visible=False)
+update_url(None)
 
 
 def refresh(event):
@@ -382,6 +411,12 @@ def refresh(event):
 
 
 refresh_button.on_click(refresh)
+
+def update_link_visibility(event):
+    link_text_input.visible = show_link_button.value
+
+show_link_button.param.watch(update_link_visibility, "value")
+
 
 
 bootstrap = pn.template.BootstrapTemplate(
@@ -487,7 +522,11 @@ visit_tract_tabs.param.watch(update_plot_names, "active")
 bootstrap.sidebar.append(repo_select)
 bootstrap.sidebar.append(collection_select)
 bootstrap.sidebar.append(all_collections)
-bootstrap.sidebar.append(refresh_button)
+
+refresh_row = pn.Row(refresh_button, show_link_button)
+bootstrap.sidebar.append(refresh_row)
+
+bootstrap.sidebar.append(link_text_input)
 bootstrap.sidebar.append(visit_tract_tabs)
 bootstrap.sidebar.append(plot_filter)
 bootstrap.sidebar.append(plot_select)
