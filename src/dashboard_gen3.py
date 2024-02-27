@@ -99,13 +99,16 @@ collection_select = pn.widgets.AutocompleteInput(name="Collection", options=coll
 skymap_select = pn.widgets.Select(name="Skymap")
 instrument_select = pn.widgets.Select(name="Instrument")
 
-tract_select = pn.widgets.MultiSelect(name="Tract", options=[], size=8)
-visit_select = pn.widgets.MultiSelect(name="Visit", options=[], size=8)
+tract_select = pn.widgets.MultiSelect(name="Tract", options=[], size=8,
+        stylesheets=["select.bk-input { background-image: none;}"])
+visit_select = pn.widgets.MultiSelect(name="Visit", options=[], size=8,
+        stylesheets=["select.bk-input { background-image: none;}"])
 plot_filter = pn.widgets.TextInput(name="Plot name filter", value="")
 detector_select = pn.widgets.IntInput(
     name="Detector Number", start=0, end=210, step=1, value=0)
 
-plot_select = pn.widgets.MultiSelect(name="Plots", options=[], size=12)
+plot_select = pn.widgets.MultiSelect(name="Plots", options=[], size=12,
+        stylesheets=["select.bk-input { overflow-x: scroll; background-image: none;}"])
 
 debug_text = pn.widgets.StaticText(value="")
 
