@@ -6,6 +6,7 @@ Dashboard for pipetask-plot-navigator
 import os
 import sys
 import logging
+import time
 
 # Configure logging
 log = logging.getLogger(__name__)
@@ -27,15 +28,35 @@ import lsst.daf.butler as dafButler
 
 repo_config_string = os.environ.get("BUTLER_URI", None)
 default_repo = os.environ.get("BUTLER_DEFAULT_REPO", None)
+default_collection = os.environ.get("BUTLER_DEFAULT_COLLECTION", None)
+
+try:
+    repo_args = pn.state.session_args.get('repo')
+    if(repo_args is not None):
+        default_repo = repo_args[0].decode()
+except Exception as e:
+    log.error(e)
+
+log.info("Starting with repo {:s}".format(default_repo))
+
+try:
+    coll_args = pn.state.session_args.get('collection')
+    if(coll_args is not None):
+        default_collection = coll_args[0].decode()
+except Exception as e:
+    log.error(e)
+
+log.info("Starting with collection {:s}".format(default_collection))
 
 if(len(dafButler.Butler.get_known_repos()) == 0 and repo_config_string is None):
-    print("No butler repo aliases configured, must set environment variable BUTLER_URI with butler config path.")
+    log.error("No butler repo aliases configured, must set environment variable BUTLER_URI with butler config path.")
     sys.exit(0)
 
 
 config = None
 butler = None
 registry = None
+plot_types = None
 collections = []
 
 plot_paths = {}
@@ -43,20 +64,6 @@ plot_datasettypes = {}
 
 
 pn.extension()
-
-
-def initialize():
-    global config, butler, registry, collections
-
-    global plot_paths
-
-    config = None
-    butler = None
-    registry = None
-    collections = []
-
-    plot_paths = {}
-
 
 def get_tracts(refs, skymap):
     tracts = list(
@@ -92,11 +99,16 @@ collection_select = pn.widgets.AutocompleteInput(name="Collection", options=coll
 skymap_select = pn.widgets.Select(name="Skymap")
 instrument_select = pn.widgets.Select(name="Instrument")
 
-tract_select = pn.widgets.MultiSelect(name="Tract", options=[], size=8)
-visit_select = pn.widgets.MultiSelect(name="Visit", options=[], size=8)
+tract_select = pn.widgets.MultiSelect(name="Tract", options=[], size=8,
+        stylesheets=["select.bk-input { background-image: none;}"])
+visit_select = pn.widgets.MultiSelect(name="Visit", options=[], size=8,
+        stylesheets=["select.bk-input { background-image: none;}"])
 plot_filter = pn.widgets.TextInput(name="Plot name filter", value="")
+detector_select = pn.widgets.IntInput(
+    name="Detector Number", start=0, end=210, step=1, value=0)
 
-plot_select = pn.widgets.MultiSelect(name="Plots", options=[], size=12)
+plot_select = pn.widgets.MultiSelect(name="Plots", options=[], size=12,
+        stylesheets=["select.bk-input { overflow-x: scroll; background-image: none;}"])
 
 debug_text = pn.widgets.StaticText(value="")
 
@@ -110,43 +122,8 @@ ncols_entry = pn.widgets.IntInput(name="n_cols", start=1, end=4, step=1, value=2
 plots = pn.GridBox(["Plots will show up here when selected."], ncols=2)
 
 
-def update_butler(event):
-    global config
-    global butler
-    global registry
-
-    try:
-        butler = dafButler.Butler(config=repo_select.value)
-        registry = butler.registry
-
-        if(all_collections.value):
-            collections = list(registry.queryCollections())
-            collections.sort()
-        else:
-            chains = set(butler.registry.queryCollections(collectionTypes={dafButler.CollectionType.CHAINED}))
-            rest = {r for r in butler.registry.queryCollections(collectionTypes={dafButler.CollectionType.RUN, dafButler.CollectionType.TAGGED}) if not any(r.startswith(c) for c in chains)}
-            collections = list(chains) + list(rest)
-            collections.sort()
-
-
-        debug_text.value = "Successfully loaded butler."
-    except Exception as e:
-        debug_text.value = f"Failed to load Butler: {str(e)}"
-        log.error(f"{str(e)}")
-        return
-
-    collection_select.options = collections
-    collection_select.value = collections[0]
-
-    skymap_select.options = [x.name for x in registry.queryDimensionRecords("skymap")]
-    instrument_select.options = [x.name for x in registry.queryDimensionRecords("instrument")]
-
-if default_repo is not None:
-    repo_select.value = default_repo
-update_butler(None)
-
-
 def find_types(registry, storageClassName="Plot"):
+    func_start = time.perf_counter()
     types = []
     for t in registry.queryDatasetTypes():
         try:
@@ -157,14 +134,71 @@ def find_types(registry, storageClassName="Plot"):
             # this test will throw a key error.
             pass
 
+    log.info("find_types duration: {:f}s".format(time.perf_counter() - func_start) )
     return types
 
+def update_butler(event):
+    global config
+    global butler
+    global registry
+    global plot_types
 
-def find_refs(collection, types):
+    try:
+        butler = dafButler.Butler(config=repo_select.value)
+        registry = butler.registry
+
+        func_start = time.perf_counter()
+        if(all_collections.value):
+            collections = list(registry.queryCollections())
+            collections.sort()
+        else:
+            chains = set(butler.registry.queryCollections(collectionTypes={dafButler.CollectionType.CHAINED}))
+            # rest = {r for r in butler.registry.queryCollections(collectionTypes={dafButler.CollectionType.RUN, dafButler.CollectionType.TAGGED}) if not any(r.startswith(c) for c in chains)}
+            rest = []
+            collections = list(chains) + list(rest)
+            collections.sort()
+        log.info("Finished getting collections {:f}s".format(time.perf_counter() - func_start))
+
+        plot_types = find_types(registry)
+
+
+        debug_text.value = "Successfully loaded butler."
+    except Exception as e:
+        debug_text.value = f"Failed to load Butler: {str(e)}"
+        log.error(f"Failed to load butler: {str(e)}")
+        return
+
+    collection_select.options = collections
+
+    if default_collection is not None and default_collection in collections:
+        collection_select.value = default_collection
+    else:
+        collection_select.value = collections[0]
+
+    skymap_select.options = [x.name for x in registry.queryDimensionRecords("skymap")]
+    instrument_select.options = [x.name for x in registry.queryDimensionRecords("instrument")]
+
+if default_repo is not None:
+    repo_select.value = default_repo
+update_butler(None)
+
+
+
+def find_refs(collection, types, required_dimension=None):
+    func_start = time.perf_counter()
     if(len(collection) == 0):
         return []
     else:
-        return list(registry.queryDatasets(types, collections=collection, findFirst=True))
+        collection_summary = registry.getCollectionSummary(collection)
+        if required_dimension is not None:
+            available_plot_types = [x for x in list(collection_summary.dataset_types) if x.storageClass_name == "Plot" and required_dimension in x.dimensions]
+        else:
+            available_plot_types = [x for x in list(collection_summary.dataset_types) if x.storageClass_name == "Plot"]
+
+        log.debug("Avaialble plots: {:d}".format(len(available_plot_types)))
+        datasets = registry.queryDatasets(available_plot_types, collections=collection, findFirst=True)
+        log.info("END find_refs {:f}s".format(time.perf_counter() - func_start))
+        return list(datasets)
 
 
 def update_tract_select(event):
@@ -173,8 +207,7 @@ def update_tract_select(event):
     if registry is None or collection_select.value is None:
         return
 
-    types = find_types(registry)
-    refs = find_refs(collection_select.value, types)
+    refs = find_refs(collection_select.value, [t for t in plot_types if 'tract' in t.dimensions], required_dimension="tract")
 
     tract_select.options = get_tracts(refs, skymap_select.value)
     tract_select.value = []
@@ -186,13 +219,17 @@ def update_visit_select(event):
     if registry is None or collection_select.value is None:
         return
 
-    types = find_types(registry)
     if registry is not None:
 
-        refs = find_refs(collection_select.value, types)
+        refs = find_refs(collection_select.value, [t for t in plot_types if 'visit' in t.dimensions], required_dimension="visit")
 
         visit_select.options = get_visits(refs, instrument_select.value)
         visit_select.value = []
+
+
+def update_url(event):
+    prefix = pn.state.location.href.split('?')[0]
+    link_text_input.value = f"{prefix:s}?repo={repo_select.value:s}&collection={collection_select.value:s}"
 
 
 repo_select.param.watch(update_butler, "value")
@@ -204,20 +241,23 @@ skymap_select.param.watch(update_tract_select, "value")
 instrument_select.param.watch(update_visit_select, "value")
 collection_select.param.watch(update_visit_select, "value")
 
+collection_select.param.watch(update_url, "value")
+
+
 
 def update_plot_names(event):
-    global plot_paths, plot_datasettypes
+    global plot_paths, plot_datasettypes, plot_select
 
     plot_names = []
     plot_refs = []
-    types = find_types(registry)
 
     if visit_tract_tabs.active == 0:
+        func_start = time.perf_counter()
         for tract in tract_select.value:
             refs = [
                 ref
                 for ref in registry.queryDatasets(
-                    types,
+                    [t for t in plot_types if 'tract' in t.dimensions],
                     collections=collection_select.value,
                     findFirst=True,
                     dataId={"skymap": skymap_select.value, "tract": tract},
@@ -231,12 +271,16 @@ def update_plot_names(event):
 
             plot_refs.extend(refs)
             plot_names.extend(names)
-    else:
+        log.info("END update_plot_names tracts {:f}s".format(time.perf_counter() - func_start))
+
+    elif visit_tract_tabs.active == 1:
+
+        func_start = time.perf_counter()
         for visit in visit_select.value:
 
             refs = list(
                 registry.queryDatasets(
-                    types,
+                    [t for t in plot_types if 'visit' in t.dimensions],
                     collections=collection_select.value,
                     findFirst=True,
                     dataId={"instrument": instrument_select.value, "visit": visit},
@@ -254,9 +298,64 @@ def update_plot_names(event):
 
             plot_refs.extend(refs)
             plot_names.extend(names)
+        log.info("END update_plot_names visits {:f}s".format(time.perf_counter() - func_start))
+
+    elif visit_tract_tabs.active == 2:
+        # Detector
+        func_start = time.perf_counter()
+        refs = list(
+            registry.queryDatasets(
+                [t for t in plot_types if 'detector' in t.dimensions and 'visit' not in t.dimensions and 'tract' not in t.dimensions],
+                collections=collection_select.value,
+                findFirst=True,
+                dataId={"instrument": instrument_select.value, "detector": detector_select.value},
+            )
+        )
+
+        if len(plot_filter.value) > 0:
+            refs = filter(
+                lambda ref: re.search(plot_filter.value, ref.datasetType.name), refs
+            )
+
+        names = [
+            (f"{p.datasetType.name}", p.datasetType.name) for p in refs
+        ]
+
+        plot_refs.extend(refs)
+        plot_names.extend(names)
+        log.info("END update_plot_names detector {:f}s".format(time.perf_counter() - func_start))
+
+    elif visit_tract_tabs.active == 3:
+
+        # Instrument/Global plots
+        # If we had collections with plots from multiple instruments we would
+        # need to have a selector for that, but in practice that very uncommon.
+        func_start = time.perf_counter()
+
+        inst_ds_types = [t for t in plot_types if 'detector' not in t.dimensions and 'visit' not in t.dimensions and 'tract' not in t.dimensions]
+        refs = list(
+            registry.queryDatasets(
+                inst_ds_types,
+                collections=collection_select.value,
+                findFirst=True
+            )
+        )
+
+        if len(plot_filter.value) > 0:
+            refs = filter(
+                lambda ref: re.search(plot_filter.value, ref.datasetType.name), refs
+            )
+
+        names = [
+            (f"{p.datasetType.name}", p.datasetType.name) for p in refs
+        ]
+
+        plot_refs.extend(refs)
+        plot_names.extend(names)
+        log.info("END update_plot_names instrument {:f}s".format(time.perf_counter() - func_start))
 
     plot_paths = {
-        name[0]: butler.getURI(ref, collections=collection_select.value)
+        name[0]: butler.getURI(ref)
         for name, ref in zip(plot_names, plot_refs)
     }
 
@@ -270,6 +369,8 @@ collection_select.param.watch(update_plot_names, "value")
 plot_filter.param.watch(update_plot_names, "value")
 tract_select.param.watch(update_plot_names, "value")
 visit_select.param.watch(update_plot_names, "value")
+detector_select.param.watch(update_plot_names, "value")
+instrument_select.param.watch(update_plot_names, "value")
 
 
 def get_png(name):
@@ -295,6 +396,9 @@ width_entry.param.watch(update_plot_layout, "value")
 ncols_entry.param.watch(update_plot_layout, "value")
 
 refresh_button = pn.widgets.Button(name="Reload", button_type="default")
+show_link_button = pn.widgets.Toggle(name="Show Link")
+link_text_input = pn.widgets.TextInput(disabled=True, value="URL", visible=False)
+update_url(None)
 
 
 def refresh(event):
@@ -310,6 +414,12 @@ def refresh(event):
 
 
 refresh_button.on_click(refresh)
+
+def update_link_visibility(event):
+    link_text_input.visible = show_link_button.value
+
+show_link_button.param.watch(update_link_visibility, "value")
+
 
 
 bootstrap = pn.template.BootstrapTemplate(
@@ -404,15 +514,22 @@ next_tract_button.on_click(next_tract)
 prev_tract_button.on_click(prev_tract)
 
 visit_tract_tabs = pn.Tabs(
-    ("Tracts", pn.Column(skymap_select, tract_select, next_prev_tract_row)),
-    ("Visits", pn.Column(instrument_select, visit_select, next_prev_visit_row)),
+    ("Tract", pn.Column(skymap_select, tract_select, next_prev_tract_row)),
+    ("Visit", pn.Column(instrument_select, visit_select, next_prev_visit_row)),
+    ("Detector", pn.Column(instrument_select, detector_select)),
+    ("Global", pn.Column()),
 )
+visit_tract_tabs.dynamic = True
 visit_tract_tabs.param.watch(update_plot_names, "active")
 
 bootstrap.sidebar.append(repo_select)
 bootstrap.sidebar.append(collection_select)
 bootstrap.sidebar.append(all_collections)
-bootstrap.sidebar.append(refresh_button)
+
+refresh_row = pn.Row(refresh_button, show_link_button)
+bootstrap.sidebar.append(refresh_row)
+
+bootstrap.sidebar.append(link_text_input)
 bootstrap.sidebar.append(visit_tract_tabs)
 bootstrap.sidebar.append(plot_filter)
 bootstrap.sidebar.append(plot_select)

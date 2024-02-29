@@ -5,7 +5,7 @@ RUN apt-get --allow-releaseinfo-change update && \
 
 
 RUN conda config --add channels conda-forge 
-RUN conda install panel=0.12 bokeh psycopg2=2 ipython
+RUN conda install panel=1.3.8 bokeh psycopg2=2 ipython
 
 RUN pip install lsst-daf-butler[s3,postgres,gs]
 
