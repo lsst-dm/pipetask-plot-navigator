@@ -1,4 +1,4 @@
-FROM continuumio/miniconda3:22.11.1
+FROM continuumio/miniconda3:24.5.0-0
 
 RUN apt-get --allow-releaseinfo-change update && \
      rm -rf /var/lib/apt/lists/*
